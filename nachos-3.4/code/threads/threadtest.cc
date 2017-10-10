@@ -1,0 +1,251 @@
+//// threadtest.cc
+//	Simple test case for the threads assignment.
+//
+//	Create two threads, and have them context switch
+//	back and forth between themselves by calling Thread::Yield,
+//	to illustratethe inner workings of the thread system.
+//
+// Copyright (c) 1992-1993 The Regents of the University of California.
+// All rights reserved.  See copyright.h for copyright notice and limitation
+// of liability and disclaimer of warranty provisions.
+
+#include "copyright.h"
+#include "system.h"
+#include "elevatortest.h"
+
+// testnum is set in main.cc
+
+/********************  I hava changed there ***********************/
+//#include <cstdlib>
+//int testnum = 1;
+//int testnum = 2;
+//int testnum = 3;
+//int testnum = 4;
+//int testnum = 6;
+int testnum = 7;
+/***************************  end  ***************************/
+
+//----------------------------------------------------------------------
+// SimpleThread
+// 	Loop 5 times, yielding the CPU to another ready thread
+//	each iteration.
+//
+//	"which" is simply a number identifying the thread, for debugging
+//	purposes.
+//----------------------------------------------------------------------
+
+void SimpleThread4(int which){
+    for(int i=0;i<5;i++){
+			printf("***thread name %s threadId %d priority %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),currentThread->getPriority(),i);
+    }
+}
+
+void SimpleThread3(int which){
+    for(int i=0;i<5;i++){
+			printf("***thread name %s threadId %d priority %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),currentThread->getPriority(),i);
+			if(i==3){
+                Thread *t4 = new Thread("thread3",-8);
+				t4->Fork(SimpleThread4,t4->getThread_id());
+            }
+    }
+}
+
+void SimpleThread2(int which){
+    for(int i=0;i<5;i++){
+			printf("***thread name %s threadId %d priority %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),currentThread->getPriority(),i);
+			if(i==2){
+                Thread *t3 = new Thread("thread3",-8);
+				t3->Fork(SimpleThread3,t3->getThread_id());
+            }
+    }
+}
+
+
+void
+SimpleThread(int which)
+{
+    /********************  I hava changed there ***********************/
+    if(testnum==2){
+        int num;
+
+        for (num = 0; num < 5; num++) {
+            printf("*** thread name %s userId %d threadId %d \n",currentThread->getName(),currentThread->getUser_id(),currentThread->getThread_id());
+            currentThread->Yield();
+        }
+    }
+
+    if(testnum==3){
+        int id=currentThread->getThread_id();
+        if(id==-1)
+            printf("All threads have been allocated!\n");
+        ASSERT(id!=-1);
+
+        //printf("*** thread %d looped %d times\n", which, num);
+        printf("*** thread name %s userId %d threadId %d \n",currentThread->getName(),currentThread->getUser_id(),id);
+        currentThread->Yield();
+    }
+
+    if(testnum==4)
+        currentThread->Yield();
+
+    if(testnum==5){
+    	for(int i=0;i<5;i++)
+    		printf("***thread name %s threadId %d priority %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),currentThread->getPriority(),i);
+	}
+	if(testnum==6){
+		for(int i=0;i<5;i++){
+			printf("***thread name %s threadId %d priority %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),currentThread->getPriority(),i);
+			if(i==1){
+                Thread *t2 = new Thread("thread2",4);
+				t2->Fork(SimpleThread2,t2->getThread_id());
+            }
+		}
+	}
+	if(testnum==7){
+        int num;
+        for (num = 0; num < 10; num++) {
+            printf("*** thread name %s  threadId %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),num);
+            interrupt->SetLevel(IntOn);
+            interrupt->SetLevel(IntOff);
+        }
+    }
+}
+
+
+
+
+//----------------------------------------------------------------------
+// ThreadTest1
+// 	Set up a ping-pong between two threads, by forking a thread
+//	to call SimpleThread, and then calling SimpleThread ourselves.
+//----------------------------------------------------------------------
+
+void
+ThreadTest1()
+{
+    DEBUG('t', "Entering ThreadTest1");
+
+    Thread *t = new Thread("forked thread");
+
+    t->Fork(SimpleThread, (void*)1);
+    SimpleThread(0);
+}
+
+/********************  Here is my codes ***********************/
+void ThreadTest2(){
+	DEBUG('t', "Entering ThreadTest2");
+	Thread *t1 = new Thread("forked thread");
+	Thread *t2 = new Thread("forked thread");
+	Thread *t3 = new Thread("forked thread");
+	Thread *t4 = new Thread("forked thread");
+
+	t1->Fork(SimpleThread,t1->getThread_id());
+	t2->Fork(SimpleThread,t2->getThread_id());
+	t3->Fork(SimpleThread,t3->getThread_id());
+	t4->Fork(SimpleThread,t4->getThread_id());
+}
+
+void ThreadTest3(){ //test overflow 120
+	DEBUG('t', "Entering ThreadTest3");
+	Thread *t[MaxThread+5];
+
+	for (int i=0;i<MaxThread+5;i++)
+        t[i] = new Thread("forked thread");
+
+    for (int i=0;i<MaxThread+5;i++)
+        t[i]->Fork(SimpleThread,t[i]->getThread_id());
+
+}
+
+void ThreadTest4(){ //test TS
+	DEBUG('t', "Entering ThreadTest4");
+
+	Thread *t1 = new Thread("forked thread");
+	Thread *t2 = new Thread("forked thread");
+	Thread *t3 = new Thread("forked thread");
+	Thread *t4 = new Thread("forked thread");
+
+	t1->Fork(SimpleThread,t1->getThread_id());
+	t2->Fork(SimpleThread,t2->getThread_id());
+	t3->Fork(SimpleThread,t3->getThread_id());
+	t4->Fork(SimpleThread,t4->getThread_id());
+
+	currentThread->TS();
+
+}
+
+void ThreadTest5(){
+	DEBUG('t', "Entering ThreadTest5");
+	Thread *t1 = new Thread("thread1",16);
+	Thread *t2 = new Thread("thread2",4);
+	Thread *t3 = new Thread("thread3",-8);//测试-8时优先级是否为1
+	Thread *t4 = new Thread("thread4");   //测试优先级是否为32
+
+	t1->Fork(SimpleThread,t1->getThread_id());
+	t2->Fork(SimpleThread,t2->getThread_id());
+	t3->Fork(SimpleThread,t3->getThread_id());
+	t4->Fork(SimpleThread,t4->getThread_id());
+}
+
+void ThreadTest6(){
+	DEBUG('t', "Entering ThreadTest6");
+	Thread *t1 = new Thread("thread1",16);
+	t1->Fork(SimpleThread,t1->getThread_id());
+
+}
+
+void ThreadTest7(){
+	DEBUG('t', "Entering ThreadTest7");
+	Thread *t1 = new Thread("thread1",8);
+	Thread *t2 = new Thread("thread2",12);
+	Thread *t3 = new Thread("thread3",1);//测试-8时优先级是否为1
+	Thread *t4 = new Thread("thread4",3);   //测试优先级是否为32
+
+	t1->Fork(SimpleThread,t1->getThread_id());
+	t2->Fork(SimpleThread,t2->getThread_id());
+	t3->Fork(SimpleThread,t3->getThread_id());
+	t4->Fork(SimpleThread,t4->getThread_id());
+}
+
+/***************************  end  ***************************/
+
+//----------------------------------------------------------------------
+// ThreadTest
+// 	Invoke a test routine.
+//----------------------------------------------------------------------
+
+void
+ThreadTest()
+{
+    switch (testnum) {
+    case 1:
+	ThreadTest1();
+	break;
+/********************  Here is my codes ***********************/
+	case 2:
+		ThreadTest2();
+		break;
+    case 3:
+        ThreadTest3();
+        break;
+    case 4:
+    	ThreadTest4();
+    	break;
+    case 5:
+    	ThreadTest5();
+    	break;
+    case 6:
+    	ThreadTest6();
+    	break;
+    case 7:
+    	ThreadTest7();
+    	break;
+
+/***************************  end  ***************************/
+
+    default:
+	printf("No test specified.\n");
+	break;
+    }
+}
+
