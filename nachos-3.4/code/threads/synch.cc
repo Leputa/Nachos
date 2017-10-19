@@ -1,6 +1,6 @@
-// synch.cc 
+// synch.cc
 //	Routines for synchronizing threads.  Three kinds of
-//	synchronization routines are defined here: semaphores, locks 
+//	synchronization routines are defined here: semaphores, locks
 //   	and condition variables (the implementation of the last two
 //	are left to the reader).
 //
@@ -18,7 +18,7 @@
 // that be disabled or enabled).
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
@@ -65,14 +65,14 @@ void
 Semaphore::P()
 {
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
-    
+
     while (value == 0) { 			// semaphore not available
 	queue->Append((void *)currentThread);	// so go to sleep
 	currentThread->Sleep();
-    } 
-    value--; 					// semaphore available, 
+    }
+    value--; 					// semaphore available,
 						// consume its value
-    
+
     (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 }
 
@@ -97,16 +97,75 @@ Semaphore::V()
     (void) interrupt->SetLevel(oldLevel);
 }
 
-// Dummy functions -- so we can compile our later assignments 
-// Note -- without a correct implementation of Condition::Wait(), 
+// Dummy functions -- so we can compile our later assignments
+// Note -- without a correct implementation of Condition::Wait(),
 // the test case in the network assignment won't work!
-Lock::Lock(char* debugName) {}
-Lock::~Lock() {}
-void Lock::Acquire() {}
-void Lock::Release() {}
 
-Condition::Condition(char* debugName) { }
-Condition::~Condition() { }
-void Condition::Wait(Lock* conditionLock) { ASSERT(FALSE); }
-void Condition::Signal(Lock* conditionLock) { }
-void Condition::Broadcast(Lock* conditionLock) { }
+/*******************  I hava change here **********************/
+Lock::Lock(char* debugName) {
+    name=debugName;
+    lock=new Semaphore(debugName,1);
+    owner=NULL;
+}
+Lock::~Lock() {
+    delete lock;
+}
+
+//使用Semaphore作为同步原语其实可以不用自己编写代码开关中断？？？
+void Lock::Acquire() {
+    IntStatus oldLevel=interrupt->SetLevel(IntOff);
+    owner=currentThread;
+    lock->P();
+    interrupt->SetLevel(oldLevel);
+}
+void Lock::Release() {
+    IntStatus oldLevel=->SetLevel(IntOff);
+    ASSERT(currentThread==owner);
+    lock->V();
+    owner=NULL;
+    interrupt->SetLevel(oldLevel);
+}
+
+/***************************  end  ***************************/
+
+
+/*******************  I hava change here **********************/
+Condition::Condition(char* debugName) {
+    name=debugName;
+    waitList=new List();
+}
+Condition::~Condition() {
+    delete waitList;
+}
+void Condition::Wait(Lock* conditionLock) {
+    //ASSERT(FALSE);
+    IntStatus oldLevel =interrupt->SetLevel(IntOff);
+    ASSERT(conditionLock->getOwner()==currentThread);
+    conditionLock->Release();
+    waitList->Append(currentThread);
+    currentThread->Sleep();//释放CPU
+    //被唤醒后重新获得锁
+    conditionLock->Acquire();
+    interrupt->SetLevel(oldLevel);
+}
+void Condition::Signal(Lock* conditionLock) {
+    IntStatus oldLevel =interrupt->SetLevel(IntOff);
+    Thread *thread;
+    ASSERT(conditionLock->getOwner()==currentThread);
+    if(!waitList->IsEmpty()){
+        thread=waitList->Remove();
+        scheduler->ReadyToRun(thread);
+    }
+    interrupt->SetLevel(oldLevel);
+}
+void Condition::Broadcast(Lock* conditionLock) {
+    IntStatus oldLevel =interrupt->SetLevel(IntOff);
+    ASSERT(conditionLock->getOwner()==currentThread);
+    Thread *thread;
+    while(!waitList.IsEmpty()){
+        thread=waitList->Remove();
+        scheduler->ReadyToRun(thread);
+    }
+    interrupt->SetLevel(oldLevel);
+}
+/***************************  end  ***************************/
