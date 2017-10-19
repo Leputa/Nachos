@@ -12,6 +12,9 @@
 #include "copyright.h"
 #include "system.h"
 #include "elevatortest.h"
+#include "synch.h"
+
+#define bufferPoolSize 20
 
 // testnum is set in main.cc
 
@@ -22,8 +25,13 @@
 //int testnum = 3;
 //int testnum = 4;
 //int testnum = 6;
-int testnum = 7;
+//int testnum = 7;
+int testnum=8;
 /***************************  end  ***************************/
+
+
+
+
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -34,6 +42,8 @@ int testnum = 7;
 //	purposes.
 //----------------------------------------------------------------------
 
+
+/********************   What I do below is for testnum==6(验证抢占性) ***********************/
 void SimpleThread4(int which){
     for(int i=0;i<5;i++){
 			printf("***thread name %s threadId %d priority %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),currentThread->getPriority(),i);
@@ -59,56 +69,131 @@ void SimpleThread2(int which){
             }
     }
 }
+/********************   What I do up is for testnum==6(验证抢占性) ***********************/
+
+
+
+
+
+/********************   What I do below is for testnum==8(生产者、消费者) ***********************/
+class BufferPool{
+    private Lock *lock;
+    private Condition *condition;
+    private static int bufferCount;
+
+    BufferPool(){
+        lock=new Lock("Lock");
+        condition =new Condition("Condition");
+        bufferCount=0;
+    }
+    ~BufferPool(){
+        delete lock;
+        delete condition;
+        bufferCount=0;
+    }
+
+    public getLock(){
+        return lock;
+    }
+    public getCondition(){
+        return condition;
+    }
+    public getbufferCount(){
+        return bufferCount;
+    }
+    public addBuffer(){
+        ++bufferCount;
+    }
+    public subBuffer(){
+        --bufferCount;
+    }
+}*bufferPool;
+
+
+void Producer(BufferPool *bufferPool){
+    //生产一个产品
+    Lock *lock=bufferPool->getLock();
+    lock->Acquire();
+    Condition *condition=bufferPool->getCondition();
+    if(bufferPool->getbufferCount()>=bufferPoolSize){
+        condition->Wait(lock);
+    }
+
+    bufferPool->addBuffer();
+    if(bufferPool->getbufferCount()==1){
+        condition->Signal(lock);
+    }
+    lock->Release();
+}
+
+void Consumer(BufferPool *bufferPool){
+    Lock *lock=bufferPool->getLock();
+    lock->Acquire();
+    Condition *condition=bufferPool->getCondition();
+    if(bufferPool->getbufferCount()==0){
+        condition->Wait(lock);
+    }
+    //消费一个产品
+    bufferPool->subBuffer();
+    if(bufferPool->getbufferCount()==bufferPoolSize-1){
+        condition->Signal(lock);
+    }
+    lock->Release();
+}
+
+/********************   What I do up is for testnum==8(生产者、消费者) ***********************/
 
 
 void
 SimpleThread(int which)
 {
     /********************  I hava changed there ***********************/
-    if(testnum==2){
-        int num;
-
-        for (num = 0; num < 5; num++) {
-            printf("*** thread name %s userId %d threadId %d \n",currentThread->getName(),currentThread->getUser_id(),currentThread->getThread_id());
-            currentThread->Yield();
-        }
-    }
-
-    if(testnum==3){
-        int id=currentThread->getThread_id();
-        if(id==-1)
-            printf("All threads have been allocated!\n");
-        ASSERT(id!=-1);
-
-        //printf("*** thread %d looped %d times\n", which, num);
-        printf("*** thread name %s userId %d threadId %d \n",currentThread->getName(),currentThread->getUser_id(),id);
-        currentThread->Yield();
-    }
-
-    if(testnum==4)
-        currentThread->Yield();
-
-    if(testnum==5){
-    	for(int i=0;i<5;i++)
-    		printf("***thread name %s threadId %d priority %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),currentThread->getPriority(),i);
-	}
-	if(testnum==6){
-		for(int i=0;i<5;i++){
-			printf("***thread name %s threadId %d priority %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),currentThread->getPriority(),i);
-			if(i==1){
-                Thread *t2 = new Thread("thread2",4);
-				t2->Fork(SimpleThread2,t2->getThread_id());
+    switch(testnum):
+        case 2:
+            int num;
+            for (num = 0; num < 5; num++) {
+                printf("*** thread name %s userId %d threadId %d \n",currentThread->getName(),currentThread->getUser_id(),currentThread->getThread_id());
+                currentThread->Yield();
             }
-		}
-	}
-	if(testnum==7){
-        int num;
-        for (num = 0; num < 10; num++) {
-            printf("*** thread name %s  threadId %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),num);
-            interrupt->SetLevel(IntOn);
-            interrupt->SetLevel(IntOff);
-        }
-    }
+        break;
+
+        case 3:
+            int id=currentThread->getThread_id();
+            if(id==-1)
+                printf("All threads have been allocated!\n");
+            ASSERT(id!=-1);
+            //printf("*** thread %d looped %d times\n", which, num);
+            printf("*** thread name %s userId %d threadId %d \n",currentThread->getName(),currentThread->getUser_id(),id);
+            currentThread->Yield();
+            break;
+
+        case 4:
+            currentThread->Yield();
+            break;
+
+        case 5:
+            for(int i=0;i<5;i++)
+                printf("***thread name %s threadId %d priority %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),currentThread->getPriority(),i);
+            break;
+
+        case 6:
+            for(int i=0;i<5;i++){
+                printf("***thread name %s threadId %d priority %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),currentThread->getPriority(),i);
+                if(i==1){
+                    Thread *t2 = new Thread("thread2",4);
+                    t2->Fork(SimpleThread2,t2->getThread_id());
+                }
+            }
+            break;
+
+        case 7:
+            int num;
+            for (num = 0; num < 10; num++) {
+                printf("*** thread name %s  threadId %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),num);
+                interrupt->SetLevel(IntOn);
+                interrupt->SetLevel(IntOff);
+            }
+            break;
 }
 
 
@@ -207,6 +292,19 @@ void ThreadTest7(){
 	t4->Fork(SimpleThread,t4->getThread_id());
 }
 
+void ThreadTest8(){
+    DEBUG('t', "Entering ThreadTest8");
+    Thread *producer=new Thread("Producer");
+    Thread *consumer1=new Thread("Consumer1");
+    Thread *consumer2=new Thread("Consumer2");
+
+    //BufferPool *bufferPool=new BufferPool();
+
+    producer->Fork(Producer,bufferPool);
+    consumer1->Fork(Consumer,bufferPool);
+    consumer2->Fork(Consumer,bufferPool);
+}
+
 /***************************  end  ***************************/
 
 //----------------------------------------------------------------------
@@ -218,34 +316,37 @@ void
 ThreadTest()
 {
     switch (testnum) {
-    case 1:
-	ThreadTest1();
-	break;
+        case 1:
+            ThreadTest1();
+            break;
 /********************  Here is my codes ***********************/
-	case 2:
-		ThreadTest2();
-		break;
-    case 3:
-        ThreadTest3();
-        break;
-    case 4:
-    	ThreadTest4();
-    	break;
-    case 5:
-    	ThreadTest5();
-    	break;
-    case 6:
-    	ThreadTest6();
-    	break;
-    case 7:
-    	ThreadTest7();
-    	break;
+        case 2:
+            ThreadTest2();
+            break;
+        case 3:
+            ThreadTest3();
+            break;
+        case 4:
+            ThreadTest4();
+            break;
+        case 5:
+            ThreadTest5();
+            break;
+        case 6:
+            ThreadTest6();
+            break;
+        case 7:
+            ThreadTest7();
+            break;
+        case 8:
+            ThreadTest8()
+            break;
 
 /***************************  end  ***************************/
 
     default:
-	printf("No test specified.\n");
-	break;
+        printf("No test specified.\n");
+        break;
     }
 }
 
