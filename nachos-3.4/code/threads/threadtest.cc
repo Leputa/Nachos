@@ -27,7 +27,8 @@
 //int testnum = 4;
 //int testnum = 6;
 //int testnum = 7;
-int testnum=8;
+//int testnum=8;
+int testnum=9;
 /***************************  end  ***************************/
 
 
@@ -109,6 +110,9 @@ class BufferPool{
         void subBuffer(){
             --bufferCount;
         }
+        void setBufferCount(int num){
+            bufferCount=num;
+        }
 };
 
 
@@ -153,6 +157,32 @@ void Consumer(BufferPool *bufferPool){
 }
 
 /********************   What I do up is for testnum==8(生产者、消费者) ***********************/
+
+
+/********************   What I do below is for testnum==9(barrier) ***********************/
+void barrierTest(BufferPool *bufferPool){
+    for(int i=0;i<3;i++){
+        Lock *lock=bufferPool->getLock();
+        Condition *condition=bufferPool->getCondition();
+        lock->Acquire();
+        bufferPool->addBuffer();
+        printf("Thread %s produce an item,There are %d items in bufferPool\n",currentThread->getName(),bufferPool->getbufferCount());
+        if(bufferPool->getbufferCount()==bufferPoolSize){
+            printf("The bufferPool is full,wake up all threads.\n");
+            bufferPool->setBufferCount(0);
+            condition->Broadcast(lock);
+
+        }
+        else{
+            //释放资源
+            condition->Wait(lock);
+        }
+        lock->Release();
+    }
+}
+
+
+/********************   What I do up is for testnum==9(barrier) ***********************/
 
 
 void
@@ -312,6 +342,23 @@ void ThreadTest8(){ //test producer/consumer
     consumer2->Fork(Consumer,bufferPool);
 }
 
+void ThreadTest9(){  //test broadcast
+    DEBUG('t', "Entering ThreadTest9");
+    Thread *t1 = new Thread("thread1");
+    Thread *t2 = new Thread("thread2");
+    Thread *t3 = new Thread("thread3");
+    Thread *t4 = new Thread("thread4");
+    Thread *t5 = new Thread("thread5");
+
+    BufferPool *bufferPool=new BufferPool();
+
+    t1->Fork(barrierTest,bufferPool);
+    t2->Fork(barrierTest,bufferPool);
+    t3->Fork(barrierTest,bufferPool);
+    t4->Fork(barrierTest,bufferPool);
+    t5->Fork(barrierTest,bufferPool);
+}
+
 /***************************  end  ***************************/
 
 //----------------------------------------------------------------------
@@ -348,7 +395,9 @@ ThreadTest()
         case 8:
             ThreadTest8();
             break;
-
+        case 9:
+            ThreadTest9();
+            break;
 /***************************  end  ***************************/
 
     default:
