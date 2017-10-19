@@ -13,7 +13,6 @@
 #include "system.h"
 #include "elevatortest.h"
 #include "synch.h"
-
 #define bufferPoolSize 20
 
 // testnum is set in main.cc
@@ -26,7 +25,7 @@
 //int testnum = 4;
 //int testnum = 6;
 //int testnum = 7;
-int testnum=8;
+int testnum=6;
 /***************************  end  ***************************/
 
 
@@ -77,68 +76,73 @@ void SimpleThread2(int which){
 
 /********************   What I do below is for testnum==8(生产者、消费者) ***********************/
 class BufferPool{
-    private Lock *lock;
-    private Condition *condition;
-    private static int bufferCount;
+    private:
+        Lock *lock;
+        Condition *condition;
+        int bufferCount;
+    public:
+        BufferPool(){
+            lock=new Lock("Lock");
+            condition =new Condition("Condition");
+            bufferCount=0;
+        }
+        ~BufferPool(){
+            delete lock;
+            delete condition;
+            bufferCount=0;
+        }
 
-    BufferPool(){
-        lock=new Lock("Lock");
-        condition =new Condition("Condition");
-        bufferCount=0;
-    }
-    ~BufferPool(){
-        delete lock;
-        delete condition;
-        bufferCount=0;
-    }
-
-    public getLock(){
-        return lock;
-    }
-    public getCondition(){
-        return condition;
-    }
-    public getbufferCount(){
-        return bufferCount;
-    }
-    public addBuffer(){
-        ++bufferCount;
-    }
-    public subBuffer(){
-        --bufferCount;
-    }
+        Lock* getLock(){
+            return lock;
+        }
+        Condition* getCondition(){
+            return condition;
+        }
+        int getbufferCount(){
+            return bufferCount;
+        }
+        void addBuffer(){
+            ++bufferCount;
+        }
+        void subBuffer(){
+            --bufferCount;
+        }
 }*bufferPool;
 
 
 void Producer(BufferPool *bufferPool){
-    //生产一个产品
-    Lock *lock=bufferPool->getLock();
-    lock->Acquire();
-    Condition *condition=bufferPool->getCondition();
-    if(bufferPool->getbufferCount()>=bufferPoolSize){
-        condition->Wait(lock);
-    }
+    for (int i=0;i<200;i++){
+        //生产一个产品
+        Lock *lock=bufferPool->getLock();
+        lock->Acquire();
+        Condition *condition=bufferPool->getCondition();
+        if(bufferPool->getbufferCount()>=bufferPoolSize){
+            condition->Wait(lock);
+        }
 
-    bufferPool->addBuffer();
-    if(bufferPool->getbufferCount()==1){
-        condition->Signal(lock);
-    }
-    lock->Release();
+        bufferPool->addBuffer();
+        if(bufferPool->getbufferCount()==1){
+            condition->Signal(lock);
+        }
+        lock->Release();
+        }
 }
 
 void Consumer(BufferPool *bufferPool){
-    Lock *lock=bufferPool->getLock();
-    lock->Acquire();
-    Condition *condition=bufferPool->getCondition();
-    if(bufferPool->getbufferCount()==0){
-        condition->Wait(lock);
+    for (int i=0;i<100;i++){
+        Lock *lock=bufferPool->getLock();
+        lock->Acquire();
+        Condition *condition=bufferPool->getCondition();
+        if(bufferPool->getbufferCount()==0){
+            condition->Wait(lock);
+        }
+        //消费一个产品
+        bufferPool->subBuffer();
+        if(bufferPool->getbufferCount()==bufferPoolSize-1){
+            condition->Signal(lock);
+        }
+        lock->Release();
     }
-    //消费一个产品
-    bufferPool->subBuffer();
-    if(bufferPool->getbufferCount()==bufferPoolSize-1){
-        condition->Signal(lock);
-    }
-    lock->Release();
 }
 
 /********************   What I do up is for testnum==8(生产者、消费者) ***********************/
@@ -148,14 +152,13 @@ void
 SimpleThread(int which)
 {
     /********************  I hava changed there ***********************/
-    switch(testnum):
+    switch(testnum){
         case 2:
-            int num;
-            for (num = 0; num < 5; num++) {
+            for (int num = 0; num < 5; num++) {
                 printf("*** thread name %s userId %d threadId %d \n",currentThread->getName(),currentThread->getUser_id(),currentThread->getThread_id());
                 currentThread->Yield();
             }
-        break;
+            break;
 
         case 3:
             int id=currentThread->getThread_id();
@@ -185,15 +188,14 @@ SimpleThread(int which)
                 }
             }
             break;
-
         case 7:
-            int num;
-            for (num = 0; num < 10; num++) {
+            for (int num = 0; num < 10; num++) {
                 printf("*** thread name %s  threadId %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),num);
                 interrupt->SetLevel(IntOn);
                 interrupt->SetLevel(IntOff);
             }
             break;
+    }
 }
 
 
@@ -261,10 +263,12 @@ void ThreadTest4(){ //test TS
 
 void ThreadTest5(){
 	DEBUG('t', "Entering ThreadTest5");
+	printf("yayaya\n");
 	Thread *t1 = new Thread("thread1",16);
 	Thread *t2 = new Thread("thread2",4);
 	Thread *t3 = new Thread("thread3",-8);//测试-8时优先级是否为1
 	Thread *t4 = new Thread("thread4");   //测试优先级是否为32
+	printf("gugudai\n");
 
 	t1->Fork(SimpleThread,t1->getThread_id());
 	t2->Fork(SimpleThread,t2->getThread_id());
@@ -330,6 +334,7 @@ ThreadTest()
             ThreadTest4();
             break;
         case 5:
+            printf("hahaha\n");
             ThreadTest5();
             break;
         case 6:
@@ -339,7 +344,7 @@ ThreadTest()
             ThreadTest7();
             break;
         case 8:
-            ThreadTest8()
+            ThreadTest8();
             break;
 
 /***************************  end  ***************************/
