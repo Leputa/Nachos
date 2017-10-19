@@ -12,8 +12,10 @@
 #include "copyright.h"
 #include "system.h"
 #include "elevatortest.h"
+/********************  I hava changed there ***********************/
 #include "synch.h"
-#define bufferPoolSize 20
+#define bufferPoolSize 5
+/***************************  end  ***************************/
 
 // testnum is set in main.cc
 
@@ -25,7 +27,7 @@
 //int testnum = 4;
 //int testnum = 6;
 //int testnum = 7;
-int testnum=6;
+int testnum=8;
 /***************************  end  ***************************/
 
 
@@ -63,7 +65,7 @@ void SimpleThread2(int which){
     for(int i=0;i<5;i++){
 			printf("***thread name %s threadId %d priority %d looped %d times\n",currentThread->getName(),currentThread->getThread_id(),currentThread->getPriority(),i);
 			if(i==2){
-                Thread *t3 = new Thread("thread3",-8);
+                Thread *t3 = new Thread("thread3",2);
 				t3->Fork(SimpleThread3,t3->getThread_id());
             }
     }
@@ -107,35 +109,40 @@ class BufferPool{
         void subBuffer(){
             --bufferCount;
         }
-}*bufferPool;
+};
 
 
 void Producer(BufferPool *bufferPool){
-    for (int i=0;i<200;i++){
+    for (int i=0;i<10;i++){
         //生产一个产品
+        printf("Thread %s produce an item.\n",currentThread->getName());
         Lock *lock=bufferPool->getLock();
         lock->Acquire();
         Condition *condition=bufferPool->getCondition();
         if(bufferPool->getbufferCount()>=bufferPoolSize){
+            printf("There is no empty buffer to get\n");
             condition->Wait(lock);
         }
-
         bufferPool->addBuffer();
+        printf("Thread %s use an empty buffer,There are %d buffers used \n",currentThread->getName(),bufferPool->getbufferCount());
         if(bufferPool->getbufferCount()==1){
             condition->Signal(lock);
         }
         lock->Release();
-        }
+    }
 }
 
 void Consumer(BufferPool *bufferPool){
-    for (int i=0;i<100;i++){
+    for (int i=0;i<6;i++){
         Lock *lock=bufferPool->getLock();
         lock->Acquire();
         Condition *condition=bufferPool->getCondition();
+        printf("There are %d items in bufferPool\n",bufferPool->getbufferCount());
         if(bufferPool->getbufferCount()==0){
+            printf("There is no item.\n");
             condition->Wait(lock);
         }
+        printf("Thread %s consume an item\n",currentThread->getName());
         //消费一个产品
         bufferPool->subBuffer();
         if(bufferPool->getbufferCount()==bufferPoolSize-1){
@@ -158,16 +165,6 @@ SimpleThread(int which)
                 printf("*** thread name %s userId %d threadId %d \n",currentThread->getName(),currentThread->getUser_id(),currentThread->getThread_id());
                 currentThread->Yield();
             }
-            break;
-
-        case 3:
-            int id=currentThread->getThread_id();
-            if(id==-1)
-                printf("All threads have been allocated!\n");
-            ASSERT(id!=-1);
-            //printf("*** thread %d looped %d times\n", which, num);
-            printf("*** thread name %s userId %d threadId %d \n",currentThread->getName(),currentThread->getUser_id(),id);
-            currentThread->Yield();
             break;
 
         case 4:
@@ -196,6 +193,15 @@ SimpleThread(int which)
             }
             break;
     }
+    if(testnum==3){
+        int id=currentThread->getThread_id();
+            if(id==-1)
+                printf("All threads have been allocated!\n");
+            ASSERT(id!=-1);
+            //printf("*** thread %d looped %d times\n", which, num);
+            printf("*** thread name %s userId %d threadId %d \n",currentThread->getName(),currentThread->getUser_id(),id);
+            currentThread->Yield();
+    }
 }
 
 
@@ -219,7 +225,7 @@ ThreadTest1()
 }
 
 /********************  Here is my codes ***********************/
-void ThreadTest2(){
+void ThreadTest2(){    //test thread_id,user_id
 	DEBUG('t', "Entering ThreadTest2");
 	Thread *t1 = new Thread("forked thread");
 	Thread *t2 = new Thread("forked thread");
@@ -261,14 +267,12 @@ void ThreadTest4(){ //test TS
 
 }
 
-void ThreadTest5(){
+void ThreadTest5(){  //test PRI
 	DEBUG('t', "Entering ThreadTest5");
-	printf("yayaya\n");
 	Thread *t1 = new Thread("thread1",16);
 	Thread *t2 = new Thread("thread2",4);
 	Thread *t3 = new Thread("thread3",-8);//测试-8时优先级是否为1
 	Thread *t4 = new Thread("thread4");   //测试优先级是否为32
-	printf("gugudai\n");
 
 	t1->Fork(SimpleThread,t1->getThread_id());
 	t2->Fork(SimpleThread,t2->getThread_id());
@@ -276,14 +280,14 @@ void ThreadTest5(){
 	t4->Fork(SimpleThread,t4->getThread_id());
 }
 
-void ThreadTest6(){
+void ThreadTest6(){ //test PRI(preemptive)
 	DEBUG('t', "Entering ThreadTest6");
 	Thread *t1 = new Thread("thread1",16);
 	t1->Fork(SimpleThread,t1->getThread_id());
 
 }
 
-void ThreadTest7(){
+void ThreadTest7(){ //test RR
 	DEBUG('t', "Entering ThreadTest7");
 	Thread *t1 = new Thread("thread1",8);
 	Thread *t2 = new Thread("thread2",12);
@@ -296,14 +300,13 @@ void ThreadTest7(){
 	t4->Fork(SimpleThread,t4->getThread_id());
 }
 
-void ThreadTest8(){
+void ThreadTest8(){ //test producer/consumer
     DEBUG('t', "Entering ThreadTest8");
     Thread *producer=new Thread("Producer");
     Thread *consumer1=new Thread("Consumer1");
     Thread *consumer2=new Thread("Consumer2");
 
-    //BufferPool *bufferPool=new BufferPool();
-
+    BufferPool *bufferPool=new BufferPool();
     producer->Fork(Producer,bufferPool);
     consumer1->Fork(Consumer,bufferPool);
     consumer2->Fork(Consumer,bufferPool);
@@ -334,7 +337,6 @@ ThreadTest()
             ThreadTest4();
             break;
         case 5:
-            printf("hahaha\n");
             ThreadTest5();
             break;
         case 6:

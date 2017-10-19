@@ -119,7 +119,7 @@ void Lock::Acquire() {
     interrupt->SetLevel(oldLevel);
 }
 void Lock::Release() {
-    IntStatus oldLevel=->SetLevel(IntOff);
+    IntStatus oldLevel=interrupt->SetLevel(IntOff);
     ASSERT(currentThread==owner);
     lock->V();
     owner=NULL;
@@ -153,7 +153,7 @@ void Condition::Signal(Lock* conditionLock) {
     Thread *thread;
     ASSERT(conditionLock->getOwner()==currentThread);
     if(!waitList->IsEmpty()){
-        thread=waitList->Remove();
+        thread=(Thread*)waitList->Remove();
         scheduler->ReadyToRun(thread);
     }
     interrupt->SetLevel(oldLevel);
@@ -162,8 +162,8 @@ void Condition::Broadcast(Lock* conditionLock) {
     IntStatus oldLevel =interrupt->SetLevel(IntOff);
     ASSERT(conditionLock->getOwner()==currentThread);
     Thread *thread;
-    while(!waitList.IsEmpty()){
-        thread=waitList->Remove();
+    while(!waitList->IsEmpty()){
+        thread=(Thread*)waitList->Remove();
         scheduler->ReadyToRun(thread);
     }
     interrupt->SetLevel(oldLevel);
