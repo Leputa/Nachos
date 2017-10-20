@@ -114,13 +114,17 @@ Lock::~Lock() {
 //使用Semaphore作为同步原语其实可以不用自己编写代码开关中断？？？
 void Lock::Acquire() {
     IntStatus oldLevel=interrupt->SetLevel(IntOff);
-    owner=currentThread;
     lock->P();
+    owner=currentThread;
     interrupt->SetLevel(oldLevel);
 }
 void Lock::Release() {
     IntStatus oldLevel=interrupt->SetLevel(IntOff);
-    ASSERT(currentThread==owner);
+    //ASSERT(currentThread==owner);//在读者写着问题中，w所可以被多个读者所拥有，不合理
+    //根据线程名判断
+    char *name1=currentThread->getName();
+    char *name2=owner->getName();
+    ASSERT(*name1==*name2);
     lock->V();
     owner=NULL;
     interrupt->SetLevel(oldLevel);

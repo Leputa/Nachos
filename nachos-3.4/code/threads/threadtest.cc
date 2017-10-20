@@ -20,14 +20,6 @@
 // testnum is set in main.cc
 
 /********************  I hava changed there ***********************/
-//#include <cstdlib>
-//int testnum = 1;
-//int testnum = 2;
-//int testnum = 3;
-//int testnum = 4;
-//int testnum = 6;
-//int testnum = 7;
-//int testnum=8;
 int testnum=9;
 /***************************  end  ***************************/
 
@@ -80,12 +72,14 @@ void SimpleThread2(int which){
 /********************   What I do below is for testnum==8(生产者、消费者) ***********************/
 class BufferPool{
     private:
-        Lock *lock;
+        Lock *w;      //在读者写者问题中，用于锁定“读、写操作”
+        Lock *lock;   //在读者写者问题中，用与锁定"修改count"
         Condition *condition;
         int bufferCount;
     public:
         BufferPool(){
             lock=new Lock("Lock");
+            w=new Lock("w/r");
             condition =new Condition("Condition");
             bufferCount=0;
         }
@@ -97,6 +91,9 @@ class BufferPool{
 
         Lock* getLock(){
             return lock;
+        }
+        Lock *getLockW(){
+            return w;
         }
         Condition* getCondition(){
             return condition;
@@ -146,9 +143,10 @@ void Consumer(BufferPool *bufferPool){
             printf("There is no item.\n");
             condition->Wait(lock);
         }
-        printf("Thread %s consume an item\n",currentThread->getName());
         //消费一个产品
         bufferPool->subBuffer();
+        printf("Thread %s consume an item.There are %d items in bufferPool\n",currentThread->getName(),bufferPool->getbufferCount());
+
         if(bufferPool->getbufferCount()==bufferPoolSize-1){
             condition->Signal(lock);
         }
@@ -183,6 +181,49 @@ void barrierTest(BufferPool *bufferPool){
 
 
 /********************   What I do up is for testnum==9(barrier) ***********************/
+
+
+/********************   What I do below is for testnum==10(write/lock) ***********************/
+void Reader(BufferPool *buffPool){
+    for(int i=0;i<10;i++){
+        Lock *lock=buffPool->getLock();
+        Lock *w=buffPool->getLockW();
+
+        lock->Acquire();
+        if(buffPool->getbufferCount()==0){
+            w->Acquire();
+            buffPool->addBuffer();   //加入一个读者
+            //printf("A reader release lockW\n");
+        }
+        else{
+            buffPool->addBuffer();
+        }
+        lock->Release();
+
+        printf("Thread %s is Reading and there are %d readers in total\n",currentThread->getName(),buffPool->getbufferCount());
+
+        lock->Acquire();
+        buffPool->subBuffer();
+        if(buffPool->getbufferCount()==0){
+            w->Release();
+            //printf("A reader release lockW\n");
+        }
+        lock->Release();
+    }
+}
+
+
+void Writer(BufferPool *buffPool){
+    for(int i=0;i<10;i++){
+        Lock *w=buffPool->getLockW();
+        w->Acquire();
+        //printf("A writer get lockW\n");
+        printf("Thread %s is Writing and there are %d readers in total\n",currentThread->getName(),buffPool->getbufferCount());
+        w->Release();
+        //printf("A writer release lockW\n");
+    }
+}
+/********************   What I do up is for testnum==10(write/lock) ***********************/
 
 
 void
@@ -333,13 +374,11 @@ void ThreadTest7(){ //test RR
 void ThreadTest8(){ //test producer/consumer
     DEBUG('t', "Entering ThreadTest8");
     Thread *producer=new Thread("Producer");
-    Thread *consumer1=new Thread("Consumer1");
-    Thread *consumer2=new Thread("Consumer2");
+    Thread *consumer=new Thread("Consumer1");
 
     BufferPool *bufferPool=new BufferPool();
     producer->Fork(Producer,bufferPool);
-    consumer1->Fork(Consumer,bufferPool);
-    consumer2->Fork(Consumer,bufferPool);
+    consumer->Fork(Consumer,bufferPool);
 }
 
 void ThreadTest9(){  //test broadcast
@@ -359,6 +398,27 @@ void ThreadTest9(){  //test broadcast
     t5->Fork(barrierTest,bufferPool);
 }
 
+void ThreadTest10(){  //test write/lock
+    DEBUG('t', "Entering ThreadTest10");
+    Thread *writer=new Thread("Writer");
+    Thread *reader1=new Thread("Reader1");
+    Thread *reader2=new Thread("Reader2");
+    Thread *reader3=new Thread("Reader3");
+    Thread *reader4=new Thread("Reader4");
+    Thread *reader5=new Thread("Reader5");
+
+
+    BufferPool *bufferPool=new BufferPool();
+
+    writer->Fork(Writer,bufferPool);
+
+    reader1->Fork(Reader,bufferPool);
+    reader2->Fork(Reader,bufferPool);
+    reader3->Fork(Reader,bufferPool);
+    reader4->Fork(Reader,bufferPool);
+    reader5->Fork(Reader,bufferPool);
+}
+
 /***************************  end  ***************************/
 
 //----------------------------------------------------------------------
@@ -369,6 +429,16 @@ void ThreadTest9(){  //test broadcast
 void
 ThreadTest()
 {
+    printf("if you want to test Lab1 Exercise3 'userId、threadId',please input '2':\n");
+    printf("if you want to test Lab1 Exercise4 'threads overflow',please input '3':\n");
+    printf("if you want to test Lab1 Exercise4 'Threads Status',please input '4':");
+    printf("if you want to test Lab2 Exercise3 'Pri scheduler',please input '5':\n");
+    printf("if you want to test Lab2 Exercise3 'Pri scheduler(preemptive)',please input '6':\n");
+    printf("if you want to test Lab2 Challenge1 'RR scheduler',please input '7':\n");
+    printf("if you want to test Lab3 Exercise4 'Producer/Consumer',please input '8':\n");
+    printf("if you want to test Lab3 Challenge1 'Barrier',please input '9':\n");
+    printf("if you want to test Lab3 Challenge2 'write/read',please input '10':\n");
+    scanf("%d",&testnum);
     switch (testnum) {
         case 1:
             ThreadTest1();
@@ -397,6 +467,9 @@ ThreadTest()
             break;
         case 9:
             ThreadTest9();
+            break;
+        case 10:
+            ThreadTest10();
             break;
 /***************************  end  ***************************/
 
