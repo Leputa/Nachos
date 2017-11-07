@@ -20,7 +20,7 @@
 // testnum is set in main.cc
 
 /********************  I hava changed there ***********************/
-int testnum=9;
+int testnum;
 /***************************  end  ***************************/
 
 
@@ -429,6 +429,7 @@ void ThreadTest10(){  //test write/lock
 void
 ThreadTest()
 {
+    /********************  Here is my codes ***********************/
     printf("if you want to test Lab1 Exercise3 'userId¡¢threadId',please input '2':\n");
     printf("if you want to test Lab1 Exercise4 'threads overflow',please input '3':\n");
     printf("if you want to test Lab1 Exercise4 'Threads Status',please input '4':");
@@ -439,6 +440,7 @@ ThreadTest()
     printf("if you want to test Lab3 Challenge1 'Barrier',please input '9':\n");
     printf("if you want to test Lab3 Challenge2 'write/read',please input '10':\n");
     scanf("%d",&testnum);
+    /***************************  end  ***************************/
     switch (testnum) {
         case 1:
             ThreadTest1();
