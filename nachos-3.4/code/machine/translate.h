@@ -1,5 +1,5 @@
-// translate.h 
-//	Data structures for managing the translation from 
+// translate.h
+//	Data structures for managing the translation from
 //	virtual page # -> physical page #, used for managing
 //	physical memory on behalf of user programs.
 //
@@ -12,7 +12,7 @@
 // DO NOT CHANGE -- part of the machine emulation
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef TLB_H
@@ -22,9 +22,9 @@
 #include "utility.h"
 
 // The following class defines an entry in a translation table -- either
-// in a page table or a TLB.  Each entry defines a mapping from one 
+// in a page table or a TLB.  Each entry defines a mapping from one
 // virtual page to one physical page.
-// In addition, there are some extra bits for access control (valid and 
+// In addition, there are some extra bits for access control (valid and
 // read-only) and some bits for usage information (use and dirty).
 
 class TranslationEntry {
@@ -40,6 +40,12 @@ class TranslationEntry {
 			// page is referenced or modified.
     bool dirty;         // This bit is set by the hardware every time the
 			// page is modified.
+    /*******************  I hava change here **********************/
+    //用于LRU
+    int lastUseTime;
+    //用于FIFO
+    int createTime;
+    /***************************  end  ***************************/
 };
 
 #endif

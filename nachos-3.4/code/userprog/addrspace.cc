@@ -65,9 +65,9 @@ AddrSpace::AddrSpace(OpenFile *executable)
     NoffHeader noffH;
     unsigned int i, size;
 
+
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
-    if ((noffH.noffMagic != NOFFMAGIC) &&
-		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
+    if ((noffH.noffMagic != NOFFMAGIC) &&(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
     ASSERT(noffH.noffMagic == NOFFMAGIC);
 
@@ -94,17 +94,20 @@ AddrSpace::AddrSpace(OpenFile *executable)
 // first, set up the translation
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
-	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	pageTable[i].physicalPage = i;
-	//是否在内存
-	pageTable[i].valid = TRUE;
-	//访问位
-	pageTable[i].use = FALSE;
-	//决定是否写回磁盘
-	pageTable[i].dirty = FALSE;
-	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on
-					// a separate page, we could set its
-					// pages to be read-only
+        pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+        pageTable[i].physicalPage = i;
+        //是否在内存
+        pageTable[i].valid = TRUE;
+        //访问位
+        pageTable[i].use = FALSE;
+        //决定是否写回磁盘
+        pageTable[i].dirty = FALSE;
+        pageTable[i].readOnly = FALSE;  // if the code segment was entirely on
+        // a separate page, we could set its pages to be read-only
+        /*******************  I hava change here **********************/
+        pageTable[i].createTime=stats->totalTicks;
+        pageTable[i].lastUseTime=stats->totalTicks;
+        /***************************  end  ***************************/
     }
 
 // zero out the entire address space, to zero the unitialized data segment
@@ -190,9 +193,6 @@ void AddrSpace::SaveState()
 
 void AddrSpace::RestoreState()
 {
-    //新的页表把旧的页表覆盖了？
-    //也就是说每打开一个程序（StartProcess），旧的页表就作废了？？
-    //nachos只能同时运行一个程序？？？
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
 }

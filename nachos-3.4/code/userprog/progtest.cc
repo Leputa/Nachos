@@ -23,12 +23,14 @@
 void
 StartProcess(char *filename)
 {
+    printf("if you would use FIFO,please input '1';if you would use LRU,please input '2': ");
+    scanf("%d",&pageSwapPolicy);
     OpenFile *executable = fileSystem->Open(filename); //打开相应文件
     AddrSpace *space;
 
     if (executable == NULL) {
-	printf("Unable to open file %s\n", filename);
-	return;
+        printf("Unable to open file %s\n", filename);
+        return;
     }
     space = new AddrSpace(executable);    //建立用户空间、装载文件、初始化用户寄存器
     currentThread->space = space;

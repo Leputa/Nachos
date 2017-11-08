@@ -55,22 +55,28 @@ void CheckEndian()
 Machine::Machine(bool debug)
 {
     int i;
-
     for (i = 0; i < NumTotalRegs; i++)
         registers[i] = 0;
     mainMemory = new char[MemorySize];
     for (i = 0; i < MemorySize; i++)
       	mainMemory[i] = 0;
-#ifdef USE_TLB
+    //因为不会改makefile,直接把这里改了
+//#ifdef USE_TLB
     tlb = new TranslationEntry[TLBSize];
-    for (i = 0; i < TLBSize; i++)
+    for (i = 0; i < TLBSize; i++){
         tlb[i].valid = FALSE;
+        /*******************  I hava change here **********************/
+        tlb[i].createTime=stats->totalTicks;
+        tlb[i].lastUseTime=stats->totalTicks;
+        /***************************  end  ***************************/
+    }
+/*
     pageTable = NULL;
 #else	// use linear page table
     tlb = NULL;
     pageTable = NULL;
 #endif
-
+*/
     singleStep = debug;
     CheckEndian();
 }
@@ -211,4 +217,88 @@ void Machine::WriteRegister(int num, int value)
 	// DEBUG('m', "WriteRegister %d, value %d\n", num, value);
 	registers[num] = value;
     }
+
+/*******************  I hava change here **********************/
+
+void Machine::FIFOSwap(int address){
+    if(tlb==NULL){
+        printf("There is no TLB\n");
+        return;
+    }
+    printf("TLB is full,using FIFO Swap.The entryTime of PTE is:");
+    int min=65535;
+    int index=0;
+    int vpn=(unsigned)address/PageSize;
+    int offset=(unsigned)address%PageSize;
+    //感觉这里用个最小堆实现更合理,不过直接调用STL会有异常，自己懒得写了
+    for(int i=0;i<TLBSize;i++){
+        if(tlb[i].createTime<min){
+            printf("%d   ",tlb[i].createTime);
+            min=tlb[i].createTime;
+            index=i;
+        }
+    }
+    printf("%d\n");
+    printf("the entryTime of being swapped PTE is %d\n",tlb[index].createTime);
+    tlb[index].virtualPage=entry->virtualPage;
+    tlb[index].physicalPage=entry->physicalPage;
+    tlb[index].valid=entry->valid;
+    tlb[index].readOnly=entry->readOnly;
+    tlb[index].dirty=entry->dirty;
+    tlb[index].createTime=stats->totalTicks;
+    entry->lastUseTime=stats->totalTicks;
+    tlb[index].lastUseTime=entry->lastUseTime;
+}
+
+void Machine::LRUSwap(int address){
+    if(tlb==NULL){
+        printf("There is no TLB\n");
+        return;
+    }
+    printf("TLB is full,using LRU Swap.the lastUseTime of PTE is:");
+    int min=65535;
+    int index=0;
+    int vpn=(unsigned)address/PageSize;
+    int offset=(unsigned)address%PageSize;
+    for(int i=0;i<TLBSize;i++){
+        if(tlb[i].lastUseTime<min){
+            printf("%d   ",tlb[i].lastUseTime);
+            min=tlb[i].lastUseTime;
+            index=i;
+        }
+    }
+    printf("%d\n");
+    printf("the lastUseTime of being swapped PTE is %d\n",tlb[index].lastUseTime);
+    //pageTable[i].virtualPage = i;
+    tlb[index].virtualPage=entry->virtualPage;
+    tlb[index].physicalPage=entry->physicalPage;
+    tlb[index].valid=entry->valid;
+    tlb[index].readOnly=entry->readOnly;
+    tlb[index].dirty=entry->dirty;
+    tlb[index].createTime=stats->totalTicks;
+    entry->lastUseTime=stats->totalTicks;
+    tlb[index].lastUseTime=entry->lastUseTime;
+}
+/***************************  end  ***************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

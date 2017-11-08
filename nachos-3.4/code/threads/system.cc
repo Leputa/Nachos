@@ -23,6 +23,7 @@ Timer *timer;				// the hardware timer device,
 int	thread_id_flag[MaxThread];
 Thread* tid_pointer[MaxThread];
 int policy;
+int pageSwapPolicy;
 /***************************  end  ***************************/
 
 #ifdef FILESYS_NEEDED
@@ -101,7 +102,7 @@ Initialize(int argc, char **argv)
 #endif
 
 /********************  Here is my codes ***********************/
-    printf("If you would use Pri,please input '1';If you wold use RR,please input '2':");
+    printf("If you would use Pri,please input '1';If you would use RR,please input '2':");
 	scanf("%d",&policy);
 	for (int i=0;i<MaxThread;i++){
 		thread_id_flag[i]=0;

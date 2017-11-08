@@ -1,8 +1,8 @@
-// system.h 
+// system.h
 //	All global variables used in Nachos are defined here.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef SYSTEM_H
@@ -20,9 +20,10 @@
 #include "timer.h"
 
 /********************  Here is my codes ***********************/
-extern int thread_id_flag[MaxThread];  //使用"0""1"来标识进程状态 
-extern Thread* tid_pointer[MaxThread];       //线程指针 
-extern int policy; //线程调度策略 1代表基于优先级的抢占式调度，2代表时间片轮转调度 
+extern int thread_id_flag[MaxThread];  //使用"0""1"来标识进程状态
+extern Thread* tid_pointer[MaxThread];       //线程指针
+extern int policy; //线程调度策略 1代表基于优先级的抢占式调度，2代表时间片轮转调度
+extern int pageSwapPolicy;//页面调度策略，1代表FIFO,2代表LRU
 /***************************  end  ***************************/
 
 // Initialization and cleanup routines
@@ -43,7 +44,7 @@ extern Timer *timer;				// the hardware alarm clock
 extern Machine* machine;	// user program memory and registers
 #endif
 
-#ifdef FILESYS_NEEDED 		// FILESYS or FILESYS_STUB 
+#ifdef FILESYS_NEEDED 		// FILESYS or FILESYS_STUB
 #include "filesys.h"
 extern FileSystem  *fileSystem;
 #endif

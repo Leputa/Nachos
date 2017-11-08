@@ -190,11 +190,11 @@ ExceptionType
 Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 {
     int i;
-    //offset 页内偏移量
-    //vpn 虚拟页号
-    unsigned int vpn, offset;
+    /*******************  I hava change here **********************/
+    /*unsigned int vpn, offset;
     TranslationEntry *entry;
-    unsigned int pageFrame;
+    unsigned int pageFrame;*/
+    /***************************  end  ***************************/
 
     DEBUG('a', "\tTranslate 0x%x, %s: ", virtAddr, writing ? "write" : "read");
 
@@ -205,8 +205,10 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     }
 
     // we must have either a TLB or a page table, but not both!
-    ASSERT(tlb == NULL || pageTable == NULL);
-    //不能同时放在快表和页表中？？？
+    /*******************  I hava change here **********************/
+    //快表和页表可以共存，接近真实操作系统，简化处理TLB PageFault难度
+    //ASSERT(tlb == NULL || pageTable == NULL);
+    /***************************  end  ***************************/
     ASSERT(tlb != NULL || pageTable != NULL);
 
 // calculate the virtual page number, and offset within the page,
@@ -226,19 +228,27 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
         }
         //页表项地址
         entry = &pageTable[vpn];
+        /*******************  I hava change here **********************/
+        pageTable[vpn].lastUseTime=stats->totalTicks;
+        /***************************  end  ***************************/
     }
-    //快表相关
     else {
         for (entry = NULL, i = 0; i < TLBSize; i++)
     	    if (tlb[i].valid && (tlb[i].virtualPage == vpn)) {
                 entry = &tlb[i];			// FOUND!
+                //更新最后使用时间
+                /*******************  I hava change here **********************/
+                tlb[i].lastUseTime=stats->totalTicks;
+                /***************************  end  ***************************/
                 break;
             }
         if (entry == NULL) {				// not found
     	    DEBUG('a', "*** no valid TLB entry found for this virtual page!\n");
-    	    return PageFaultException;		// really, this is a TLB fault,
-						// the page may be in memory,
-                        // but not in the TLB
+    	    /*******************  I hava change here **********************/
+    	    //return PageFaultException;
+    	    // really, this is a TLB fault,the page may be in memory, but not in the TLB
+            machine->RaiseException(PageFaultException,virtAddr);
+            /***************************  end  ***************************/
         }
     }
 
@@ -262,3 +272,14 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     DEBUG('a', "phys addr = 0x%x\n", *physAddr);
     return NoException;
 }
+
+/*******************  I hava change here **********************/
+void Machine::TranlatePTE(void){
+    ASSERT(vpn<pageTableSize);
+    ASSERT(pageTable[vpn].valid);
+    entry=&pageTable[vpn];
+}
+/***************************  end  ***************************/
+
+
+

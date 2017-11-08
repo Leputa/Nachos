@@ -1,4 +1,4 @@
-// exception.cc 
+// exception.cc
 //	Entry point into the Nachos kernel from user programs.
 //	There are two kinds of things that can cause control to
 //	transfer back to here from user code:
@@ -9,7 +9,7 @@
 //
 //	exceptions -- The user code does something that the CPU can't handle.
 //	For instance, accessing memory that doesn't exist, arithmetic errors,
-//	etc.  
+//	etc.
 //
 //	Interrupts (which can also cause control to transfer from user
 //	code into the Nachos kernel) are handled elsewhere.
@@ -18,7 +18,7 @@
 // Everything else core dumps.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
@@ -39,12 +39,12 @@
 //		arg3 -- r6
 //		arg4 -- r7
 //
-//	The result of the system call, if any, must be put back into r2. 
+//	The result of the system call, if any, must be put back into r2.
 //
 // And don't forget to increment the pc before returning. (Or else you'll
 // loop making the same system call forever!
 //
-//	"which" is the kind of exception.  The list of possible exceptions 
+//	"which" is the kind of exception.  The list of possible exceptions
 //	are in machine.h.
 //----------------------------------------------------------------------
 
@@ -54,10 +54,57 @@ ExceptionHandler(ExceptionType which)
     int type = machine->ReadRegister(2);
 
     if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
-    } else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(FALSE);
+        DEBUG('a', "Shutdown, initiated by user program.\n");
+        interrupt->Halt();
+    }
+    /*******************  I hava change here **********************/
+    else if(which==PageFaultException){
+        if(machine->tlb!=NULL){
+            //处理快表失效
+            DEBUG('a', "PageFault on TLB.calling TranslatePTE()\n");
+            printf("There is a TLB PageFault happening!\n");
+            //更新页表项地址
+            machine->TranlatePTE();
+            int position = -1;
+            for(int i = 0; i < TLBSize; i++){
+                if(machine->tlb[i].valid==FALSE){
+                    position=i;
+                    break;
+                }
+            }
+            //快表还有空余，不需要换出
+            if(position!=-1){
+                printf("These is unused page in TLB,and the position is %d\n",position+1);
+                machine->tlb[position].valid=true;
+                machine->tlb[position].virtualPage=machine->entry->virtualPage;
+                machine->tlb[position].physicalPage=machine->entry->physicalPage;
+                machine->tlb[position].readOnly=machine->entry->readOnly;
+                machine->tlb[position].dirty=machine->entry->dirty;
+                machine->tlb[position].createTime=stats->totalTicks;
+                machine->entry->lastUseTime=stats->totalTicks;
+                machine->tlb[position].lastUseTime=machine->entry->lastUseTime;
+            }
+            else{
+                int address=machine->ReadRegister(BadVAddrReg);
+                //LRU
+                if(pageSwapPolicy==2)
+                    machine->LRUSwap(address);
+                //FIFO
+                else if(pageSwapPolicy==1)
+                    machine->FIFOSwap(address);
+            }
+            int NextPC = machine->ReadRegister(NextPCReg);
+            machine->WriteRegister(PCReg, NextPC);
+        }
+        else{
+            //处理页表失效
+            //目前的情况下，因为物理页面全部进入内存，所以不会发生页表失效的问题
+            ASSERT(false);
+        }
+    }
+    /***************************  end  ***************************/
+    else {
+        printf("Unexpected user mode exception %d %d\n", which, type);
+        ASSERT(FALSE);
     }
 }
