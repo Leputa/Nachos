@@ -24,6 +24,8 @@ int	thread_id_flag[MaxThread];
 Thread* tid_pointer[MaxThread];
 int policy;
 int pageSwapPolicy;
+int tlbHit=0;
+int tlbUnHit=0;
 /***************************  end  ***************************/
 
 #ifdef FILESYS_NEEDED

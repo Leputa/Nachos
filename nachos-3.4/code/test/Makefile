@@ -35,7 +35,7 @@ CPP = gcc -E
 INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
-all: halt shell matmult sort testRLU
+all: halt shell matmult sort testTLBException
 
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.c > strt.s
@@ -66,8 +66,8 @@ matmult: matmult.o start.o
 	$(LD) $(LDFLAGS) start.o matmult.o -o matmult.coff
 	../bin/coff2noff matmult.coff matmult
 
-testRLU.o: testRLU.c
-	$(CC) $(CFLAGS) -c testRLU.c
-testRLU: testRLU.o start.o
-	$(LD) $(LDFLAGS) start.o testRLU.o -o testRLU.coff
-	../bin/coff2noff testRLU.coff testRLU
+testTLBException.o: testTLBException.c
+	$(CC) $(CFLAGS) -c testTLBException.c
+testTLBException: testTLBException.o start.o
+	$(LD) $(LDFLAGS) start.o testTLBException.o -o testTLBException.coff
+	../bin/coff2noff testTLBException.coff testTLBException

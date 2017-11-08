@@ -24,6 +24,8 @@ extern int thread_id_flag[MaxThread];  //使用"0""1"来标识进程状态
 extern Thread* tid_pointer[MaxThread];       //线程指针
 extern int policy; //线程调度策略 1代表基于优先级的抢占式调度，2代表时间片轮转调度
 extern int pageSwapPolicy;//页面调度策略，1代表FIFO,2代表LRU
+extern int tlbHit;
+extern int tlbUnHit;
 /***************************  end  ***************************/
 
 // Initialization and cleanup routines

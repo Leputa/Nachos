@@ -62,7 +62,8 @@ ExceptionHandler(ExceptionType which)
         if(machine->tlb!=NULL){
             //处理快表失效
             DEBUG('a', "PageFault on TLB.calling TranslatePTE()\n");
-            printf("There is a TLB PageFault happening!\n");
+            //printf("There is a TLB PageFault happening!\n");
+            tlbUnHit++;
             //更新页表项地址
             machine->TranlatePTE();
             int position = -1;
@@ -74,7 +75,7 @@ ExceptionHandler(ExceptionType which)
             }
             //快表还有空余，不需要换出
             if(position!=-1){
-                printf("These is unused page in TLB,and the position is %d\n",position+1);
+                //printf("These is unused page in TLB,and the position is %d\n",position+1);
                 machine->tlb[position].valid=true;
                 machine->tlb[position].virtualPage=machine->entry->virtualPage;
                 machine->tlb[position].physicalPage=machine->entry->physicalPage;

@@ -41,8 +41,9 @@ Machine::Run()
         OneInstruction(instr);
         //时钟前进
         interrupt->OneTick();
-        if (singleStep && (runUntilTime <= stats->totalTicks))
-        Debugger();
+        if (singleStep && (runUntilTime <= stats->totalTicks)){
+            Debugger();
+        }
     }
 }
 

@@ -235,6 +235,8 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     else {
         for (entry = NULL, i = 0; i < TLBSize; i++)
     	    if (tlb[i].valid && (tlb[i].virtualPage == vpn)) {
+                //printf("find PTE in TLB,Hit!\n");
+                tlbHit++;
                 entry = &tlb[i];			// FOUND!
                 //更新最后使用时间
                 /*******************  I hava change here **********************/

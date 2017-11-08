@@ -225,21 +225,21 @@ void Machine::FIFOSwap(int address){
         printf("There is no TLB\n");
         return;
     }
-    printf("TLB is full,using FIFO Swap.The entryTime of PTE is:");
+    //printf("TLB is full,using FIFO Swap.The entryTime of PTE is:");
     int min=65535;
     int index=0;
     int vpn=(unsigned)address/PageSize;
     int offset=(unsigned)address%PageSize;
     //感觉这里用个最小堆实现更合理,不过直接调用STL会有异常，自己懒得写了
     for(int i=0;i<TLBSize;i++){
+        //printf("%d   ",tlb[i].createTime);
         if(tlb[i].createTime<min){
-            printf("%d   ",tlb[i].createTime);
             min=tlb[i].createTime;
             index=i;
         }
     }
-    printf("%d\n");
-    printf("the entryTime of being swapped PTE is %d\n",tlb[index].createTime);
+    //printf("%d\n");
+    //printf("the entryTime of being swapped PTE is %d\n",tlb[index].createTime);
     tlb[index].virtualPage=entry->virtualPage;
     tlb[index].physicalPage=entry->physicalPage;
     tlb[index].valid=entry->valid;
@@ -255,20 +255,20 @@ void Machine::LRUSwap(int address){
         printf("There is no TLB\n");
         return;
     }
-    printf("TLB is full,using LRU Swap.the lastUseTime of PTE is:");
+   // printf("TLB is full,using LRU Swap.the lastUseTime of PTE is:");
     int min=65535;
     int index=0;
     int vpn=(unsigned)address/PageSize;
     int offset=(unsigned)address%PageSize;
     for(int i=0;i<TLBSize;i++){
+        //printf("%d   ",tlb[i].lastUseTime);
         if(tlb[i].lastUseTime<min){
-            printf("%d   ",tlb[i].lastUseTime);
             min=tlb[i].lastUseTime;
             index=i;
         }
     }
-    printf("%d\n");
-    printf("the lastUseTime of being swapped PTE is %d\n",tlb[index].lastUseTime);
+    //printf("%d\n");
+    //printf("the lastUseTime of being swapped PTE is %d\n",tlb[index].lastUseTime);
     //pageTable[i].virtualPage = i;
     tlb[index].virtualPage=entry->virtualPage;
     tlb[index].physicalPage=entry->physicalPage;
