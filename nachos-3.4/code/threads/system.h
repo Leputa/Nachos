@@ -9,6 +9,7 @@
 #define SYSTEM_H
 /********************  Here is my codes ***********************/
 #define MaxThread 128
+#include "bitmap.h"
 /***************************  end  ***************************/
 
 #include "copyright.h"
@@ -26,6 +27,7 @@ extern int policy; //线程调度策略 1代表基于优先级的抢占式调度，2代表时间片轮转调
 extern int pageSwapPolicy;//页面调度策略，1代表FIFO,2代表LRU
 extern int tlbHit;
 extern int tlbUnHit;
+extern BitMap *bitmap;
 /***************************  end  ***************************/
 
 // Initialization and cleanup routines

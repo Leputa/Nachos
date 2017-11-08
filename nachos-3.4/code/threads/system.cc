@@ -38,6 +38,9 @@ SynchDisk   *synchDisk;
 
 #ifdef USER_PROGRAM	// requires either FILESYS or FILESYS_STUB
 Machine *machine;	// user program memory and registers
+/*******************  I hava change here **********************/
+BitMap *bitmap=new BitMap(4096);
+/***************************  end  ***************************/
 #endif
 
 #ifdef NETWORK

@@ -186,6 +186,7 @@ class Machine {
     void TranlatePTE(void);
     void FIFOSwap(int address);
     void LRUSwap(int address);
+    float MemoryTieUpRate;
     /***************************  end  ***************************/
 
   private:

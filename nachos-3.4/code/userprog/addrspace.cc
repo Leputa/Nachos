@@ -93,9 +93,18 @@ AddrSpace::AddrSpace(OpenFile *executable)
 					numPages, size);
 // first, set up the translation
     pageTable = new TranslationEntry[numPages];
+    /*******************  I hava change here **********************/
+    firstPhysicalPage=0;
+    /***************************  end  ***************************/
     for (i = 0; i < numPages; i++) {
         pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-        pageTable[i].physicalPage = i;
+        /*******************  I hava change here **********************/
+        //pageTable[i].physicalPage = i;
+        pageTable[i].physicalPage=bitmap->Find();
+        if(i==0)
+            firstPhysicalPage=pageTable[i].physicalPage;
+        printf("Allocate bit(%d) for pageTable[%d]\n",pageTable[i].physicalPage,i);
+        ASSERT(pageTable[i].physicalPage!=-1);
         //是否在内存
         pageTable[i].valid = TRUE;
         //访问位
@@ -128,6 +137,9 @@ AddrSpace::AddrSpace(OpenFile *executable)
 			noffH.initData.size, noffH.initData.inFileAddr);
     }
 
+    machine->MemoryTieUpRate = bitmap->BitMapTieUpRate();
+    printf("MemoryTieUpRate = %f\n",machine->MemoryTieUpRate);
+
 }
 
 //----------------------------------------------------------------------
@@ -137,7 +149,11 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 AddrSpace::~AddrSpace()
 {
-   delete pageTable;
+    /*******************  I hava change here **********************/
+    for(int i=0;i<numPages;i++)
+        bitmap->Clear(pageTable[i].physicalPage);
+    /***************************  end  ***************************/
+    delete pageTable;
 }
 
 //----------------------------------------------------------------------
