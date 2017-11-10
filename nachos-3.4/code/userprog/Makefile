@@ -16,7 +16,7 @@ CFILES = $(THREAD_C) $(USERPROG_C)
 C_OFILES = $(THREAD_O) $(USERPROG_O)
 
 # if file sys done first!
-# DEFINES = -DUSER_PROGRAM -DFILESYS_NEEDED -DFILESYS -USE_TLB
+# DEFINES = -DUSER_PROGRAM -DFILESYS_NEEDED -DFILESYS
 # INCPATH = -I../bin -I../filesys -I../userprog -I../threads -I../machine
 # HFILES = $(THREAD_H) $(USERPROG_H) $(FILESYS_H)
 # CFILES = $(THREAD_C) $(USERPROG_C) $(FILESYS_C)
@@ -189,7 +189,7 @@ threadtest.o: ../threads/threadtest.cc /usr/include/stdc-predef.h \
  ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
  ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
  ../threads/list.h ../machine/stats.h ../machine/timer.h \
- ../machine/elevatortest.h ../threads/synch.h
+ ../machine/elevatortest.h
 interrupt.o: ../machine/interrupt.cc /usr/include/stdc-predef.h \
  ../threads/copyright.h ../machine/interrupt.h ../threads/list.h \
  ../threads/copyright.h ../threads/utility.h ../threads/bool.h \

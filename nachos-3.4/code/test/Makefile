@@ -35,7 +35,7 @@ CPP = gcc -E
 INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
-all: halt shell matmult sort testTLBException
+all: halt shell matmult sort testTLBException testBitMap
 
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.c > strt.s
@@ -71,3 +71,9 @@ testTLBException.o: testTLBException.c
 testTLBException: testTLBException.o start.o
 	$(LD) $(LDFLAGS) start.o testTLBException.o -o testTLBException.coff
 	../bin/coff2noff testTLBException.coff testTLBException
+
+testBitMap.o: testBitMap.c
+	$(CC) $(CFLAGS) -c testBitMap.c
+testBitMap: testBitMap.o start.o
+	$(LD) $(LDFLAGS) start.o testBitMap.o -o testBitMap.coff
+	../bin/coff2noff testBitMap.coff testBitMap

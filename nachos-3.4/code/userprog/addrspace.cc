@@ -79,6 +79,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     size = noffH.code.size + noffH.initData.size + noffH.uninitData.size
 			+ UserStackSize;	// we need to increase the size
 						// to leave room for the stack
+    printf("%d\n",size);
     //这两步感觉就是做了一个向上取整
     //最后一页有页内碎片
     numPages = divRoundUp(size, PageSize);
@@ -105,6 +106,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
             firstPhysicalPage=pageTable[i].physicalPage;
         printf("Allocate bit(%d) for pageTable[%d]\n",pageTable[i].physicalPage,i);
         ASSERT(pageTable[i].physicalPage!=-1);
+        /***************************  end  ***************************/
         //是否在内存
         pageTable[i].valid = TRUE;
         //访问位
@@ -136,10 +138,10 @@ AddrSpace::AddrSpace(OpenFile *executable)
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
 			noffH.initData.size, noffH.initData.inFileAddr);
     }
-
+    /*******************  I hava change here **********************/
     machine->MemoryTieUpRate = bitmap->BitMapTieUpRate();
     printf("MemoryTieUpRate = %f\n",machine->MemoryTieUpRate);
-
+    /***************************  end  ***************************/
 }
 
 //----------------------------------------------------------------------
