@@ -241,7 +241,10 @@ void
 Interrupt::Halt()
 {
     /*******************  I hava change here **********************/
-    printf("tlbHit:%d   tlbMiss:%d    tlbHitRate:%f\n",tlbHit,tlbUnHit,tlbHit/(double)(tlbHit+tlbUnHit));
+    if(testTag==1)
+        printf("tlbHit:%d   tlbMiss:%d    tlbHitRate:%f\n",tlbHit,tlbUnHit,tlbHit/(double)(tlbHit+tlbUnHit));
+    else if(testTag==2)
+        printf("MemoryTieUpRate = %f\n",machine->MemoryTieUpRate);
     /***************************  end  ***************************/
     printf("Machine halting!\n\n");
     stats->Print();

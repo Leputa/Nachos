@@ -26,6 +26,7 @@ int policy;
 int pageSwapPolicy;
 int tlbHit=0;
 int tlbUnHit=0;
+int testTag;
 /***************************  end  ***************************/
 
 #ifdef FILESYS_NEEDED

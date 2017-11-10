@@ -28,6 +28,7 @@ extern int pageSwapPolicy;//页面调度策略，1代表FIFO,2代表LRU
 extern int tlbHit;
 extern int tlbUnHit;
 extern BitMap *bitmap;
+extern int testTag;
 /***************************  end  ***************************/
 
 // Initialization and cleanup routines

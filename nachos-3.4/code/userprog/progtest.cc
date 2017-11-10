@@ -25,6 +25,9 @@ StartProcess(char *filename)
 {
     printf("if you would use FIFO,please input '1';if you would use LRU,please input '2': ");
     scanf("%d",&pageSwapPolicy);
+    printf("if you'd like to test TLB PageException,please input '1':\n");
+    printf("if you'd like to test BitMap,please input '2':\n");
+    scanf("%d",&testTag);
     OpenFile *executable = fileSystem->Open(filename); //打开相应文件
     AddrSpace *space;
 
