@@ -59,7 +59,7 @@ ExceptionHandler(ExceptionType which)
     }
     /*******************  I hava change here **********************/
     else if(which==PageFaultException){
-        if(machine->tlb!=NULL){
+        if(machine->tag==0){
             //处理快表失效
             DEBUG('a', "PageFault on TLB.calling TranslatePTE()\n");
             //printf("There is a TLB PageFault happening!\n");
@@ -94,14 +94,40 @@ ExceptionHandler(ExceptionType which)
                 else if(pageSwapPolicy==1)
                     machine->FIFOSwap(address);
             }
-            int NextPC = machine->ReadRegister(NextPCReg);
-            machine->WriteRegister(PCReg, NextPC);
         }
-        else{
+        else if(machine->tag==1){
             //处理页表失效
             //目前的情况下，因为物理页面全部进入内存，所以不会发生页表失效的问题
-            ASSERT(false);
+            OpenFile *openfile=fileSystem->Open("vm");
+            if(openfile==NULL)
+                ASSERT(false);
+            machine->vpn=(unsigned)machine->registers[BadVAddrReg]/PageSize;
+            int position=bitmap->Find();
+
+            if(position==-1){
+                position=0;
+                for(int j=0;j<machine->pageTableSize;j++){
+                    if(machine->pageTable[j].physicalPage==0){
+                        //写回
+                        if(machine->pageTable[j].dirty==TRUE){
+                            openfile->WriteAt(&(machine->mainMemory[position*PageSize]),PageSize,machine->pageTable[j].virtualPage*PageSize);
+                            machine->pageTable[j].valid=FALSE;
+                            break;
+                        }
+                    }
+                }
+            }
+            openfile->ReadAt(&(machine->mainMemory[position*PageSize]),PageSize,machine->vpn*PageSize);
+            machine->pageTable[machine->vpn].valid=TRUE;
+            machine->pageTable[machine->vpn].physicalPage=position;
+            machine->pageTable[machine->vpn].use=TRUE;
+            machine->pageTable[machine->vpn].dirty=FALSE;
+            machine->pageTable[machine->vpn].readOnly=FALSE;
+            delete openfile;
+            machine->tag=0;
         }
+        int NextPC = machine->ReadRegister(NextPCReg);
+        machine->WriteRegister(PCReg, NextPC);
     }
     /***************************  end  ***************************/
     else {
