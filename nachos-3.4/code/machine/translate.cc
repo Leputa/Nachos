@@ -262,8 +262,10 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 
     // if the pageFrame is too big, there is something really wrong!
     // An invalid translation was loaded into the page table or TLB.
+    //多线程这里时钟会报错。。。。。。。
     if (pageFrame >= NumPhysPages) {
         DEBUG('a', "*** frame %d > %d!\n", pageFrame, NumPhysPages);
+        printf("%d      %d\n",pageFrame,NumPhysPages);
         return BusErrorException;
     }
     entry->use = TRUE;		// set the use, dirty bits

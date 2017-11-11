@@ -19,15 +19,11 @@
 // 	Run a user program.  Open the executable, load it into
 //	memory, and jump to it.
 //----------------------------------------------------------------------
+/*******************  I hava change here **********************/
 
 void
-StartProcess(char *filename)
+StartProcess2(char *filename)
 {
-    printf("if you would use FIFO,please input '1';if you would use LRU,please input '2': ");
-    scanf("%d",&pageSwapPolicy);
-    printf("if you'd like to test TLB PageException,please input '1':\n");
-    printf("if you'd like to test BitMap,please input '2':\n");
-    scanf("%d",&testTag);
     OpenFile *executable = fileSystem->Open(filename); //打开相应文件
     AddrSpace *space;
 
@@ -47,6 +43,65 @@ StartProcess(char *filename)
 					// the address space exits
 					// by doing the syscall "exit"
 }
+
+
+void testMulThreads(char *filename){
+    printf("%s is running\n",currentThread->getName());
+    StartProcess2(filename);
+}
+
+
+void StartMulThreadsProcess(char *filename){
+    printf("Running MulThreadTest()...\n");
+    Thread *t1 = new Thread("thread 1");
+    Thread *t2 = new Thread("thread 2");
+    Thread *t3 = new Thread("thread 3");
+
+    t1->Fork(testMulThreads,filename);
+    t2->Fork(testMulThreads,filename);
+    t3->Fork(testMulThreads,filename);
+}
+
+
+/***************************  end  ***************************/
+
+void
+StartProcess(char *filename)
+{
+    /*******************  I hava change here **********************/
+    printf("if you would use FIFO,please input '1';if you would use LRU,please input '2': ");
+    scanf("%d",&pageSwapPolicy);
+    printf("if you'd like to test lab4 Exercise3 'TLB PageException',please input '1':\n");
+    printf("if you'd like to test lab4 Exercise4 'BitMap',please input '2':\n");
+    printf("if you'd like to test lab4 Exercise5 'MulThreads for memory',please input '3':\n");
+    scanf("%d",&testTag);
+
+    if(testTag==3){
+        StartMulThreadsProcess(filename);
+    }
+    /***************************  end  ***************************/
+    OpenFile *executable = fileSystem->Open(filename); //打开相应文件
+    AddrSpace *space;
+
+    if (executable == NULL) {
+        printf("Unable to open file %s\n", filename);
+        return;
+    }
+    space = new AddrSpace(executable);    //建立用户空间、装载文件、初始化用户寄存器
+    currentThread->space = space;
+
+    delete executable;			// close file
+
+    space->InitRegisters();		// set the initial register values
+    space->RestoreState();		// load page table register
+    machine->Run();			// jump to the user progam
+
+    ASSERT(FALSE);			// machine->Run never returns;
+					// the address space exits
+					// by doing the syscall "exit"
+}
+
+
 
 // Data structures needed for the console test.  Threads making
 // I/O requests wait on a Semaphore to delay until the I/O completes.

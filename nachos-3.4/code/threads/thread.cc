@@ -121,6 +121,7 @@ Thread::~Thread()
 	thread_id=this->getThread_id();
 	thread_id_flag[thread_id]=0;  //重新将线程状态修改为"0"
 	tid_pointer[thread_id]=NULL;
+    delete this->space;
 /***************************  end  ***************************/
 
 }

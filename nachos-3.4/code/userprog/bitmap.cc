@@ -8,6 +8,7 @@
 
 #include "copyright.h"
 #include "bitmap.h"
+#include "system.h"
 
 //----------------------------------------------------------------------
 // BitMap::BitMap
@@ -60,6 +61,8 @@ BitMap::Mark(int which)
 void
 BitMap::Clear(int which)
 {
+    if(testTag==2||testTag==3)
+        printf("deallocate bit(%d)\n",which);
     ASSERT(which >= 0 && which < numBits);
     map[which / BitsInWord] &= ~(1 << (which % BitsInWord));
 }

@@ -103,7 +103,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
         pageTable[i].physicalPage=bitmap->Find();
         if(i==0)
             firstPhysicalPage=pageTable[i].physicalPage;
-        if(testTag==2)
+        if(testTag==2||testTag==3)
             printf("Allocate bit(%d) for pageTable[%d]\n",pageTable[i].physicalPage,i);
         ASSERT(pageTable[i].physicalPage!=-1);
         /***************************  end  ***************************/
@@ -123,22 +123,28 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 // zero out the entire address space, to zero the unitialized data segment
 // and the stack segment
-    bzero(machine->mainMemory, size);
+    /*******************  I hava change here **********************/
+    //保证用户程序只在第一次使用的时候清零内存
+    if(firstPhysicalPage==0)
+        bzero(machine->mainMemory, size);
+    /***************************  end  ***************************/
 
 // then, copy in the code and data segments into memory
-    if (noffH.code.size > 0) {
-        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",
-			noffH.code.virtualAddr, noffH.code.size);
-        executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
-			noffH.code.size, noffH.code.inFileAddr);
-    }
-    if (noffH.initData.size > 0) {
-        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
-			noffH.initData.virtualAddr, noffH.initData.size);
-        executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
-			noffH.initData.size, noffH.initData.inFileAddr);
-    }
     /*******************  I hava change here **********************/
+    int codeVirtualAddr = noffH.code.virtualAddr+firstPhysicalPage*PageSize;
+    if (noffH.code.size > 0) {
+        //DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",noffH.code.virtualAddr, noffH.code.size);
+        //executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),noffH.code.size, noffH.code.inFileAddr);
+        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n",codeVirtualAddr, noffH.code.size);
+        executable->ReadAt(&(machine->mainMemory[codeVirtualAddr]),noffH.code.size, noffH.code.inFileAddr);
+    }
+    int initDataVirtualAddr=noffH.initData.virtualAddr+firstPhysicalPage*PageSize;
+    if (noffH.initData.size > 0) {
+        //DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",noffH.initData.virtualAddr, noffH.initData.size);
+        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",initDataVirtualAddr, noffH.initData.size);
+        //executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),noffH.initData.size, noffH.initData.inFileAddr);
+        executable->ReadAt(&(machine->mainMemory[initDataVirtualAddr]),noffH.initData.size, noffH.initData.inFileAddr);
+    }
     machine->MemoryTieUpRate = bitmap->BitMapTieUpRate();
     /***************************  end  ***************************/
 }
@@ -151,8 +157,9 @@ AddrSpace::AddrSpace(OpenFile *executable)
 AddrSpace::~AddrSpace()
 {
     /*******************  I hava change here **********************/
-    for(int i=0;i<numPages;i++)
+    for(int i=0;i<numPages;i++){
         bitmap->Clear(pageTable[i].physicalPage);
+    }
     /***************************  end  ***************************/
     delete pageTable;
 }
@@ -196,9 +203,13 @@ AddrSpace::InitRegisters()
 //
 //	For now, nothing!
 //----------------------------------------------------------------------
-
+/*******************  I hava change here **********************/
 void AddrSpace::SaveState()
-{}
+{
+    for (int i=0; i<TLBSize;i++)
+        machine->tlb[i].valid=FALSE;
+}
+/***************************  end  ***************************/
 
 //----------------------------------------------------------------------
 // AddrSpace::RestoreState

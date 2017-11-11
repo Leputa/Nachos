@@ -181,7 +181,7 @@ Initialize(int argc, char **argv)
     /*******************  I hava change here **********************/
     //currentThread = new Thread("main");
     //Assign the main thread an top priority
-    currentThread = new Thread("main",1);
+    currentThread = new Thread("main",16);
     currentThread->setStatus(RUNNING);
 
     interrupt->Enable();
