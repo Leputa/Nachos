@@ -187,6 +187,10 @@ class Machine {
     void FIFOSwap(int address);
     void LRUSwap(int address);
     float MemoryTieUpRate;
+    unsigned int vpn,offset;
+    unsigned int pageFrame;
+
+    int tag=0;
     /***************************  end  ***************************/
 
   private:
@@ -194,10 +198,6 @@ class Machine {
 				// simulated instruction
     int runUntilTime;		// drop back into the debugger when simulated
 				// time reaches this value
-    /*******************  I hava change here **********************/
-    unsigned int vpn,offset;
-    unsigned int pageFrame;
-    /***************************  end  ***************************/
 };
 
 extern void ExceptionHandler(ExceptionType which);

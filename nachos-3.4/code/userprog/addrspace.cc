@@ -65,7 +65,6 @@ AddrSpace::AddrSpace(OpenFile *executable)
     NoffHeader noffH;
     unsigned int i, size;
 
-
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) &&(WordToHost(noffH.noffMagic) == NOFFMAGIC))
     	SwapHeader(&noffH);
@@ -84,10 +83,29 @@ AddrSpace::AddrSpace(OpenFile *executable)
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 
-    ASSERT(numPages <= NumPhysPages);		// check we're not trying
+    /*******************  I hava change here **********************/
+    //ASSERT(numPages <= NumPhysPages);		// check we're not trying
 						// to run anything too big --
 						// at least until we have
 						// virtual memory
+
+    fileSystem->Create("vm",size);
+    OpenFile *openfile=fileSystem->Open("vm");
+    if(openfile==NULL)
+        ASSERT(false);
+    if(noffH.code.size>0){
+        int pos1=noffH.code.inFileAddr;
+        int pos2=noffH.code.virtualAddr;
+        char current_char;
+        for(int j = 0; j<noffH.code.size;j++){
+            executable->ReadAt(&(current_char),1,pos1);
+            openfile->WriteAt(&(current_char),1,pos2);
+            pos1++;
+            pos2++;
+        }
+    }
+    delete openfile;
+    /***************************  end  ***************************/
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n",
 					numPages, size);
@@ -100,6 +118,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
         pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
         /*******************  I hava change here **********************/
         //pageTable[i].physicalPage = i;
+        pageTable[i].valid=FALSE;
         pageTable[i].physicalPage=bitmap->Find();
         if(i==0)
             firstPhysicalPage=pageTable[i].physicalPage;

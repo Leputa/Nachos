@@ -50,6 +50,20 @@ void testMulThreads(char *filename){
     StartProcess2(filename);
 }
 
+void StartPTEPageFaultProcess(char *filename){
+    printf("Running PTEPageFaultTest()...\n");
+    Thread *t1 = new Thread("thread 1");
+    Thread *t2 = new Thread("thread 2");
+    Thread *t3 = new Thread("thread 3");
+    Thread *t4 = new Thread("thread 4");
+    Thread *t5 = new Thread("thread 5");
+
+    t1->Fork(testMulThreads,filename);
+    t2->Fork(testMulThreads,filename);
+    t3->Fork(testMulThreads,filename);
+    t4->Fork(testMulThreads,filename);
+    t5->Fork(testMulThreads,filename);
+}
 
 void StartMulThreadsProcess(char *filename){
     printf("Running MulThreadTest()...\n");
@@ -71,13 +85,18 @@ StartProcess(char *filename)
     /*******************  I hava change here **********************/
     printf("if you would use FIFO,please input '1';if you would use LRU,please input '2': ");
     scanf("%d",&pageSwapPolicy);
-    printf("if you'd like to test lab4 Exercise3 'TLB PageException',please input '1':\n");
+    printf("if you'd like to test lab4 Exercise3 'TLB PageFault',please input '1':\n");
     printf("if you'd like to test lab4 Exercise4 'BitMap',please input '2':\n");
     printf("if you'd like to test lab4 Exercise5 'MulThreads for memory',please input '3':\n");
+    printf("if you'd like to test lab4 Exercise6 'PTE PageFault',please input '4':\n");
     scanf("%d",&testTag);
 
     if(testTag==3){
         StartMulThreadsProcess(filename);
+    }
+
+    if(testTag==4){
+        StartPTEPageFaultProcess(filename);
     }
     /***************************  end  ***************************/
     OpenFile *executable = fileSystem->Open(filename); //打开相应文件

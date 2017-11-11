@@ -217,13 +217,12 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     offset = (unsigned) virtAddr % PageSize;
 
     if (tlb == NULL) {		// => page table => vpn is index into table
-        if (vpn >= pageTableSize) {   //越界
+        /*if (vpn >= pageTableSize) {   //越界
             DEBUG('a', "virtual page # %d too large for page table size %d!\n",
                 virtAddr, pageTableSize);
             return AddressErrorException;
-        } else if (!pageTable[vpn].valid) {  //缺页中断
-            DEBUG('a', "virtual page # %d too large for page table size %d!\n",
-                  virtAddr, pageTableSize);
+        } else*/ if (!pageTable[vpn].valid) {  //缺页中断
+            DEBUG('a', "virtual page # %d too large for page table size %d!\n",virtAddr, pageTableSize);
             return PageFaultException;
         }
         //页表项地址
@@ -263,24 +262,29 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     // if the pageFrame is too big, there is something really wrong!
     // An invalid translation was loaded into the page table or TLB.
     //多线程这里时钟会报错。。。。。。。
-    if (pageFrame >= NumPhysPages) {
+    /*if (pageFrame >= NumPhysPages) {
         DEBUG('a', "*** frame %d > %d!\n", pageFrame, NumPhysPages);
         printf("%d      %d\n",pageFrame,NumPhysPages);
         return BusErrorException;
-    }
+    }*/
     entry->use = TRUE;		// set the use, dirty bits
     if (writing)
         entry->dirty = TRUE;
     *physAddr = pageFrame * PageSize + offset;
-    ASSERT((*physAddr >= 0) && ((*physAddr + size) <= MemorySize));
+    //ASSERT((*physAddr >= 0) && ((*physAddr + size) <= MemorySize));
     DEBUG('a', "phys addr = 0x%x\n", *physAddr);
     return NoException;
 }
 
 /*******************  I hava change here **********************/
 void Machine::TranlatePTE(void){
-    ASSERT(vpn<pageTableSize);
-    ASSERT(pageTable[vpn].valid);
+    /*ASSERT(vpn<pageTableSize);
+    ASSERT(pageTable[vpn].valid);*/
+    if(vpn>=pageTable||!pageTable[vpn].valid){
+        int virtAddr=machine->vpn*PageSize+machine->offset;
+        machine->tag=1;
+        machine->RaiseException(PageFaultException,virtAddr);
+    }
     entry=&pageTable[vpn];
 }
 /***************************  end  ***************************/
