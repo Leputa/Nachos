@@ -124,6 +124,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
             firstPhysicalPage=pageTable[i].physicalPage;
         if(testTag==2||testTag==3)
             printf("Allocate bit(%d) for pageTable[%d]\n",pageTable[i].physicalPage,i);
+        pageTable[i].thread_id=currentThread->getThread_id();
         ASSERT(pageTable[i].physicalPage!=-1);
         /***************************  end  ***************************/
         //是否在内存
@@ -165,7 +166,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
         executable->ReadAt(&(machine->mainMemory[initDataVirtualAddr]),noffH.initData.size, noffH.initData.inFileAddr);
     }
     machine->MemoryTieUpRate = bitmap->BitMapTieUpRate();
-    /***************************  end  ***************************/
+    /***************************  end  ***************************/\
 }
 
 //----------------------------------------------------------------------

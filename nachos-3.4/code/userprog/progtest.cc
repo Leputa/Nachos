@@ -38,6 +38,8 @@ StartProcess2(char *filename)
 
     space->InitRegisters();		// set the initial register values
     space->RestoreState();		// load page table register
+    if(testTag==5)
+        currentThread->Suspend();
     machine->Run();			// jump to the user progam
     ASSERT(FALSE);			// machine->Run never returns;
 					// the address space exits
@@ -46,6 +48,11 @@ StartProcess2(char *filename)
 
 
 void testMulThreads(char *filename){
+    printf("%s is running\n",currentThread->getName());
+    StartProcess2(filename);
+}
+
+void testSuspendThread(char *filename){
     printf("%s is running\n",currentThread->getName());
     StartProcess2(filename);
 }
@@ -76,6 +83,15 @@ void StartMulThreadsProcess(char *filename){
     t3->Fork(testMulThreads,filename);
 }
 
+void StartSuspendThreadProcess(char *filename){
+    Thread *t1 = new Thread("thread 1");
+    Thread *t2 = new Thread("thread 2");
+    Thread *t3 = new Thread("thread 3");
+
+    t1->Fork(testSuspendThread,filename);
+    t2->Fork(testSuspendThread,filename);
+    t3->Fork(testSuspendThread,filename);
+}
 
 /***************************  end  ***************************/
 
@@ -89,6 +105,7 @@ StartProcess(char *filename)
     printf("if you'd like to test lab4 Exercise4 'BitMap',please input '2':\n");
     printf("if you'd like to test lab4 Exercise5 'MulThreads for memory',please input '3':\n");
     printf("if you'd like to test lab4 Exercise6 'PTE PageFault',please input '4':\n");
+    printf("if you'd like to test lab4 Challenge1 'Suspend',please input '5':\n");
     scanf("%d",&testTag);
 
     if(testTag==3){
@@ -97,6 +114,9 @@ StartProcess(char *filename)
 
     if(testTag==4){
         StartPTEPageFaultProcess(filename);
+    }
+    if(testTag==5){
+        StartSuspendThreadProcess(filename);
     }
     /***************************  end  ***************************/
     OpenFile *executable = fileSystem->Open(filename); //打开相应文件

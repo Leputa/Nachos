@@ -281,7 +281,23 @@ void Machine::LRUSwap(int address){
 }
 /***************************  end  ***************************/
 
-
+/*******************  I hava change here **********************/
+void Machine::Suspend_prepare()
+{
+    OpenFile *openfile=fileSystem->Open("vm");
+    if(openfile==NULL)
+        ASSERT(false);
+    for (int i = 0; i < NumPhysPages; i++){
+        if(machine->pageTable[i].thread_id==currentThread->getThread_id()){
+            printf("PageTable[%d] would write to disk\n",i);
+            if(machine->pageTable[i].dirty==TRUE){
+                openfile->WriteAt(&(machine->mainMemory[i*PageSize]),PageSize,machine->pageTable[i].virtualPage*PageSize);
+            }
+            machine->pageTable[i].valid=FALSE;
+        }
+    }
+}
+/***************************  end  ***************************/
 
 
 

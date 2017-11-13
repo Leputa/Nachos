@@ -191,6 +191,7 @@ class Machine {
     unsigned int pageFrame;
 
     int tag=0;
+    void Suspend_prepare();
     /***************************  end  ***************************/
 
   private:

@@ -327,6 +327,40 @@ void ThreadPrint(int arg){ Thread *t = (Thread *)arg; t->Print(); }
 //	"func" is the procedure to be forked
 //	"arg" is the parameter to be passed to the procedure
 //----------------------------------------------------------------------
+/********************  Here is my codes ***********************/
+void
+Thread::Suspend ()
+{
+    machine->Suspend_prepare();
+    Thread *nextThread;
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+    ASSERT(this == currentThread);
+
+    DEBUG('t', "Suspending thread \"%s\"\n", getName());
+	nextThread = scheduler->FindNextToRun();
+	switch(policy){
+		case 1:
+			//只有当前进程优先级大于就绪队列队首线程时，才会被调度下CPU
+			if(nextThread!=NULL){
+        		int currentPriority=currentThread->getPriority();
+        		int nextPriority=nextThread->getPriority();
+        		if(currentPriority>nextPriority ){
+            		scheduler->ReadyToRun(this);
+            		scheduler->Run(nextThread);
+        		}
+			}
+			break;
+		case 2:
+			if(nextThread!=NULL){
+				scheduler->ReadyToRun(this);
+				scheduler->Run(nextThread);
+			}
+			break;
+		}
+    (void) interrupt->SetLevel(oldLevel);
+}
+ /***************************  end  ***************************/
 
 void
 Thread::StackAllocate (VoidFunctionPtr func, void *arg)

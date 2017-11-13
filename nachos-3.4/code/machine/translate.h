@@ -45,6 +45,7 @@ class TranslationEntry {
     int lastUseTime;
     //用于FIFO
     int createTime;
+    int thread_id;
     /***************************  end  ***************************/
 };
 
