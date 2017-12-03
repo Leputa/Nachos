@@ -289,7 +289,7 @@ void Machine::Suspend_prepare()
         ASSERT(false);
     for (int i = 0; i < NumPhysPages; i++){
         if(machine->pageTable[i].thread_id==currentThread->getThread_id()){
-            printf("PageTable[%d] would write to disk\n",i);
+            printf("%s may write PageTable[%d] to disk\n",currentThread->getName(),i);
             if(machine->pageTable[i].dirty==TRUE){
                 openfile->WriteAt(&(machine->mainMemory[i*PageSize]),PageSize,machine->pageTable[i].virtualPage*PageSize);
             }
