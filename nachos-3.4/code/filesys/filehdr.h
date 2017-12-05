@@ -18,11 +18,11 @@
 #include "bitmap.h"
 
 /********************  I hava changed there ***********************/
-//#define NumDirect 	((SectorSize - 2 * sizeof(int)) / sizeof(int))
-// 头文件增长，减少了直接索引数量
-#define NumDirect 	((SectorSize - 2 * sizeof(int)-79) / sizeof(int))
+//#define NumDirect ((SectorSize - 2 * sizeof(int)) / sizeof(int))
+//减少了直接索引数量
+#define NumDirect 	((SectorSize - 2 * sizeof(int)-79 *sizeof(char)) / sizeof(int))
 /******************************  end  *****************************/
-#define MaxFileSize 	(NumDirect * SectorSize)
+#define MaxFileSize (NumDirect * SectorSize)
 
 // The following class defines the Nachos "file header" (in UNIX terms,
 // the "i-node"), describing where on disk to find all of the data in the file.
