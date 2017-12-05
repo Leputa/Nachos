@@ -1,12 +1,12 @@
-// filehdr.h 
-//	Data structures for managing a disk file header.  
+// filehdr.h
+//	Data structures for managing a disk file header.
 //
 //	A file header describes where on disk to find the data in a file,
 //	along with other information about the file (for instance, its
 //	length, owner, etc.)
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
@@ -17,13 +17,17 @@
 #include "disk.h"
 #include "bitmap.h"
 
-#define NumDirect 	((SectorSize - 2 * sizeof(int)) / sizeof(int))
+/********************  I hava changed there ***********************/
+//#define NumDirect 	((SectorSize - 2 * sizeof(int)) / sizeof(int))
+// 头文件增长，减少了直接索引数量
+#define NumDirect 	((SectorSize - 2 * sizeof(int)-79) / sizeof(int))
+/******************************  end  *****************************/
 #define MaxFileSize 	(NumDirect * SectorSize)
 
-// The following class defines the Nachos "file header" (in UNIX terms,  
+// The following class defines the Nachos "file header" (in UNIX terms,
 // the "i-node"), describing where on disk to find all of the data in the file.
 // The file header is organized as a simple table of pointers to
-// data blocks. 
+// data blocks.
 //
 // The file header data structure can be stored in memory or on disk.
 // When it is on disk, it is stored in a single sector -- this means
@@ -37,10 +41,10 @@
 
 class FileHeader {
   public:
-    bool Allocate(BitMap *bitMap, int fileSize);// Initialize a file header, 
-						//  including allocating space 
+    bool Allocate(BitMap *bitMap, int fileSize);// Initialize a file header,
+						//  including allocating space
 						//  on disk for the file data
-    void Deallocate(BitMap *bitMap);  		// De-allocate this file's 
+    void Deallocate(BitMap *bitMap);  		// De-allocate this file's
 						//  data blocks
 
     void FetchFrom(int sectorNumber); 	// Initialize file header from disk
@@ -51,15 +55,27 @@ class FileHeader {
 					// to the disk sector containing
 					// the byte
 
-    int FileLength();			// Return the length of the file 
+    int FileLength();			// Return the length of the file
 					// in bytes
 
     void Print();			// Print the contents of the file.
+    /********************  I hava changed there ***********************/
+    char type[4];  //文件类型
+    char create_time[25];  //创建时间
+    char last_visit_time[25]; //上次访问时间
+    char last_modified_time[25];  //上次修改时间
+
+    void set_create_time();
+    void set_last_visit_time();
+    void set_last_modified_time();
+
+    int sector_position;  //记录首块位置
+    /******************************  end  *****************************/
 
   private:
     int numBytes;			// Number of bytes in the file
     int numSectors;			// Number of data sectors in the file
-    int dataSectors[NumDirect];		// Disk sector numbers for each data 
+    int dataSectors[NumDirect];		// Disk sector numbers for each data
 					// block in the file
 };
 
