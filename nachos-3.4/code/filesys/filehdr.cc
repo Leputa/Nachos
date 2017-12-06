@@ -148,10 +148,12 @@ FileHeader::Print()
     }
     delete [] data;
     /********************  I hava changed there ***********************/
-    printf("filetype: %s\n",type);
-    printf("create-time: %s\n",create_time);
-    printf("last-visit-time: %s\n",last_visit_time);
-    printf("last-modified-time: %s\n",last_modified_time);
+    if(fileTag==1){
+        printf("filetype: %s\n",type);
+        printf("create-time: %s\n",create_time);
+        printf("last-visit-time: %s\n",last_visit_time);
+        printf("last-modified-time: %s\n",last_modified_time);
+    }
     /***************************  end  ***************************/
 }
 

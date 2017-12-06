@@ -39,6 +39,7 @@
 #include "openfile.h"
 /********************  I hava changed there ***********************/
 #include "time.h"
+extern int fileTag;
 /***************************  end  ***************************/
 
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as

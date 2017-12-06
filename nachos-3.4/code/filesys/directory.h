@@ -65,7 +65,7 @@ class Directory {
     int Find(char *name);		// Find the sector number of the
 					// FileHeader for file: "name"
 
-    bool Add(char *name, int newSector);  // Add a file name into the directory
+    bool Add(char *name, int newSector,int type);  // Add a file name into the directory
 
     bool Remove(char *name);		// Remove a file from the directory
 
@@ -76,6 +76,8 @@ class Directory {
 					//  names and their contents.
     /********************  I hava changed there ***********************/
     int FindDir(char *name);
+    int GetType(char *file_name);
+    bool IsEmpty();
     /***************************  end  ***************************/
 
   private:

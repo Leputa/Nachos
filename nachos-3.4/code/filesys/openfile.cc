@@ -32,7 +32,8 @@ OpenFile::OpenFile(int sector)
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
     /********************  I hava changed there ***********************/
-    hdr->Print();
+    if(fileTag==1)
+        hdr->Print();
     /***************************  end  ***************************/
     seekPosition = 0;
 }

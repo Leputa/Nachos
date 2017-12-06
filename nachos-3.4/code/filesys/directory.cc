@@ -141,6 +141,7 @@ Directory::Add(char *name, int newSector,int type)
     }
     if(pos==-1)
         pos=0;
+    int j=0;
     for(int i=pos;i<strlen(name);i++)
         file_name[j++]=name[i];
     file_name[j]='\0';
@@ -168,7 +169,7 @@ Directory::Add(char *name, int newSector,int type)
     for (int i = 0; i < tableSize; i++)
         if (!table[i].inUse) {
             table[i].inUse = TRUE;
-            strncpy(table[i].path,name,20)
+            strncpy(table[i].path,name,20);
             strncpy(table[i].name, file_name, FileNameMaxLen);
             table[i].sector = newSector; //inode
             table[i].type=type;
@@ -224,7 +225,9 @@ Directory::Print()
     printf("Directory contents:\n");
     for (int i = 0; i < tableSize; i++)
 	if (table[i].inUse) {
-	    printf("Name: %s, Sector: %d\n", table[i].name, table[i].sector);
+        /********************  I hava changed there ***********************/
+	    printf("Name: %s, Sector: %d, Path: %s\n", table[i].name, table[i].sector,table[i].path);
+	    /***************************  end  ***************************/
 	    hdr->FetchFrom(table[i].sector);
 	    hdr->Print();
 	}
@@ -256,5 +259,22 @@ int Directory::FindDir(char *name){
         }
     }
     return sector;
+}
+
+int Directory::GetType(char *file_name){
+    int index=FindIndex(file_name);
+    if(index==-1)
+        return -1;
+    return table[index].type;
+}
+
+bool Directory::IsEmpty(){
+    int tag=FALSE;
+    for (int i=0;i<tableSize;i++)
+        if(table[i].inUse){
+            tag=TRUE;
+            break;
+        }
+    return tag;
 }
 /***************************  end  ***************************/

@@ -64,6 +64,10 @@
 #define NumDirEntries 		10
 #define DirectoryFileSize 	(sizeof(DirectoryEntry) * NumDirEntries)
 
+/********************  I hava changed there ***********************/
+int fileTag;
+/***************************  end  ***************************/
+
 //----------------------------------------------------------------------
 // FileSystem::FileSystem
 // 	Initialize the file system.  If format = TRUE, the disk has
@@ -79,6 +83,10 @@
 
 FileSystem::FileSystem(bool format)
 {
+    printf("if you'd like to test lab5 Exercise2 'FileHeader'attributes',please input '1'\n");
+    printf("if you'd like to test lab5 Exercise4 'Multilevel directory',please input '2'\n");
+    scanf("%d",&fileTag);
+
     DEBUG('f', "Initializing the file system.\n");
     if (format) {
         BitMap *freeMap = new BitMap(NumSectors);
@@ -174,6 +182,7 @@ FileSystem::FileSystem(bool format)
 bool
 FileSystem::Create(char *name, int initialSize)
 {
+    printf("hahaha\n");
     Directory *directory;
     BitMap *freeMap;
     FileHeader *hdr;
@@ -200,6 +209,7 @@ FileSystem::Create(char *name, int initialSize)
     }
     if(pos==-1)
         pos=0;
+    int j=0;
     for(int i=pos;i<strlen(name);i++)
         file_name[j++]=name[i];
     file_name[j]='\0';
@@ -225,16 +235,26 @@ FileSystem::Create(char *name, int initialSize)
             success=TRUE;
             hdr->WriteBack(sector);
             Directory *dir=new Directory(NumDirEntries);
-            openFile *dir_file=new OpenFile(sector);
+            OpenFile *dir_file=new OpenFile(sector);
             dir->WriteBack(name_dir);
             freeMap->WriteBack(freeMapFile);
+            printf("Tag:%d\n",fileTag);
+            if(fileTag==1){
+                printf("Create:\n");
+                printf("create-time: %s\n",hdr->create_time);
+                printf("visit-time: %s\n",hdr->last_visit_time);
+                printf("modify-time: %s\n",hdr->last_modified_time);
+            }
+            else if(fileTag==2){
+                directory->Print();
+            }
             delete hdr;
             delete dir;
             delete dir_file;
         }
         /***************************  end  ***************************/
         else{
-            if (!directory->Add(name, sector))
+            if (!directory->Add(name, sector,1))
                 success = FALSE;	// no space in directory
             else {
                 hdr = new FileHeader;
@@ -253,14 +273,20 @@ FileSystem::Create(char *name, int initialSize)
                     }
                     strcpy(hdr->type,file_name+name_position);
                     //设置文件的创建时间，上次访问时间，上次修改时间
-                    printf("Create:\n");
+
                     hdr->set_create_time();
                     hdr->set_last_visit_time();
                     hdr->set_last_modified_time();
                     hdr->sector_position=sector;
-                    printf("create-time: %s\n",hdr->create_time);
-                    printf("visit-time: %s\n",hdr->last_visit_time);
-                    printf("modify-time: %s\n",hdr->last_modified_time);
+                    if(fileTag==1){
+                        printf("Create:\n");
+                        printf("create-time: %s\n",hdr->create_time);
+                        printf("visit-time: %s\n",hdr->last_visit_time);
+                        printf("modify-time: %s\n",hdr->last_modified_time);
+                    }
+                    else if(fileTag==2){
+                        directory->Print();
+                    }
                     /***************************  end  ***************************/
                 // everthing worked, flush all changes back to disk
                     hdr->WriteBack(sector);
@@ -289,16 +315,39 @@ FileSystem::Create(char *name, int initialSize)
 OpenFile *
 FileSystem::Open(char *name)
 {
+    printf("mmp\n");
     Directory *directory = new Directory(NumDirEntries);
     OpenFile *openFile = NULL;
     int sector;
     /********************  I hava changed there ***********************/
     //DEBUG('f', "Opening file %s\n", name);
     directory->FetchFrom(directoryFile);
-    sector = directory->Find(name);
+    sector = directory->FindDir(name);
+    directory=new Directory(NumDirEntries);
     if (sector >= 0)
         openFile = new OpenFile(sector);	// name was found in directory
-
+    directory->FetchFrom(openFile);
+    char file_name[FileNameMaxLen+1];
+    int pos=-1;
+    for(int i=strlen(name)-1;i>=0;i--){
+        if(name[i]=='/'){
+            pos=i+1;
+            break;
+        }
+    }
+    if(pos==-1)
+        pos=0;
+    int j=0;
+    for(int i=pos;i<strlen(name);i++)
+        file_name[j++]=name[i];
+    file_name[j]='\0';
+    printf("%s\n",file_name);
+    sector=directory->Find(file_name);
+    if(sector>=0)
+        openFile=new OpenFile(sector);
+    if(fileTag==2)
+        directory->Print();
+    /***************************  end  ***************************/
     delete directory;
     return openFile;				// return NULL if not found
 }
@@ -323,15 +372,52 @@ FileSystem::Remove(char *name)
     Directory *directory;
     BitMap *freeMap;
     FileHeader *fileHdr;
+    OpenFile *openFile = NULL;
     int sector;
-
+    /********************  I hava changed there ***********************/
+    //目录文件首块地址
+    int dir_sector;
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
-    sector = directory->Find(name);
+    dir_sector = directory->FindDir(name);
+    //若目录存在,先打开目录并获取目录文件
+    if(dir_sector>=0)
+        openFile=new OpenFile(dir_sector);
+    directory->FetchFrom(openFile);
+    char file_name[FileNameMaxLen+1];
+    int pos=-1;
+    for(int i=strlen(name)-1;i>=0;i--){
+        if(name[i]=='/'){
+            pos=i+1;
+            break;
+        }
+    }
+    if(pos==-1)
+        pos=0;
+    int j=0;
+    for(int i=pos;i<strlen(name);i++)
+        file_name[j++]=name[i];
+    file_name[j]='\0';
+    sector=directory->Find(file_name);
+    /***************************  end  ***************************/
     if (sector == -1) {
        delete directory;
-       return FALSE;			 // file not found
+       return FALSE;
     }
+    /********************  I hava changed there ***********************/
+    //文件类型为目录文件,需要判断该目录是否为空，若不为空，该目录不能删除
+    if(directory->GetType(file_name)==0){
+        Directory *current_directory=new Directory(NumDirEntries);
+        OpenFile *current_openFile=new OpenFile(sector);
+        current_directory->FetchFrom(current_openFile);
+        if(!current_directory->IsEmpty()){
+            printf("Unable to delete the dir,there are files in the dir.\n");
+            return FALSE;
+        }
+        delete current_directory;
+        delete current_openFile;
+    }
+    /***************************  end  ***************************/
     fileHdr = new FileHeader;
     fileHdr->FetchFrom(sector);
 
@@ -344,6 +430,8 @@ FileSystem::Remove(char *name)
 
     freeMap->WriteBack(freeMapFile);		// flush to disk
     directory->WriteBack(directoryFile);        // flush to disk
+    if(fileTag==2)
+        directory->Print();
     delete fileHdr;
     delete directory;
     delete freeMap;
