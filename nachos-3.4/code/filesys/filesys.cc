@@ -83,9 +83,11 @@ int fileTag;
 
 FileSystem::FileSystem(bool format)
 {
+    /********************  I hava changed there ***********************/
     printf("if you'd like to test lab5 Exercise2 'FileHeader'attributes',please input '1'\n");
     printf("if you'd like to test lab5 Exercise4 'Multilevel directory',please input '2'\n");
     scanf("%d",&fileTag);
+    /***************************  end  ***************************/
 
     DEBUG('f', "Initializing the file system.\n");
     if (format) {
@@ -132,7 +134,6 @@ FileSystem::FileSystem(bool format)
         DEBUG('f', "Writing bitmap and directory back to disk.\n");
 	freeMap->WriteBack(freeMapFile);	 // flush changes to disk
 	directory->WriteBack(directoryFile);
-
 	if (DebugIsEnabled('f')) {
 	    freeMap->Print();
 	    directory->Print();
@@ -182,7 +183,6 @@ FileSystem::FileSystem(bool format)
 bool
 FileSystem::Create(char *name, int initialSize)
 {
-    printf("hahaha\n");
     Directory *directory;
     BitMap *freeMap;
     FileHeader *hdr;
@@ -191,13 +191,17 @@ FileSystem::Create(char *name, int initialSize)
 
     DEBUG('f', "Creating file %s, size %d\n", name, initialSize);
 
+    //directory 根目录地址
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
+
     /********************  I hava changed there ***********************/
     //打开文件目录
     int name_sector=directory->FindDir(name);
     OpenFile *name_dir=new OpenFile(name_sector);
+    //directory切换到当前目录
     directory->FetchFrom(name_dir);
+
     //获取不包含目录的文件名
     char file_name[FileNameMaxLen+1];
     int pos=-1;
@@ -213,6 +217,7 @@ FileSystem::Create(char *name, int initialSize)
     for(int i=pos;i<strlen(name);i++)
         file_name[j++]=name[i];
     file_name[j]='\0';
+
     /***************************  end  ***************************/
 
     if (directory->Find(file_name) != -1)
@@ -225,7 +230,9 @@ FileSystem::Create(char *name, int initialSize)
             success = FALSE;		// no free block for file header
         /********************  I hava changed there ***********************/
         //文件类型为目录文件
+
         if (initialSize==-1){
+            //向directory中添加目录项
             if(!directory->Add(name,sector,0))
                 return FALSE;
             hdr=new FileHeader;
@@ -236,9 +243,8 @@ FileSystem::Create(char *name, int initialSize)
             hdr->WriteBack(sector);
             Directory *dir=new Directory(NumDirEntries);
             OpenFile *dir_file=new OpenFile(sector);
-            dir->WriteBack(name_dir);
+            dir->WriteBack(dir_file);
             freeMap->WriteBack(freeMapFile);
-            printf("Tag:%d\n",fileTag);
             if(fileTag==1){
                 printf("Create:\n");
                 printf("create-time: %s\n",hdr->create_time);
@@ -248,6 +254,7 @@ FileSystem::Create(char *name, int initialSize)
             else if(fileTag==2){
                 directory->Print();
             }
+            directory->WriteBack(name_dir);
             delete hdr;
             delete dir;
             delete dir_file;
@@ -289,8 +296,8 @@ FileSystem::Create(char *name, int initialSize)
                     }
                     /***************************  end  ***************************/
                 // everthing worked, flush all changes back to disk
+                    directory->WriteBack(name_dir);
                     hdr->WriteBack(sector);
-                    directory->WriteBack(directoryFile);
                     freeMap->WriteBack(freeMapFile);
                 }
                 delete hdr;
@@ -315,7 +322,6 @@ FileSystem::Create(char *name, int initialSize)
 OpenFile *
 FileSystem::Open(char *name)
 {
-    printf("mmp\n");
     Directory *directory = new Directory(NumDirEntries);
     OpenFile *openFile = NULL;
     int sector;
@@ -341,12 +347,10 @@ FileSystem::Open(char *name)
     for(int i=pos;i<strlen(name);i++)
         file_name[j++]=name[i];
     file_name[j]='\0';
-    printf("%s\n",file_name);
+    //printf("%s\n",file_name);
     sector=directory->Find(file_name);
     if(sector>=0)
         openFile=new OpenFile(sector);
-    if(fileTag==2)
-        directory->Print();
     /***************************  end  ***************************/
     delete directory;
     return openFile;				// return NULL if not found
@@ -430,8 +434,9 @@ FileSystem::Remove(char *name)
 
     freeMap->WriteBack(freeMapFile);		// flush to disk
     directory->WriteBack(directoryFile);        // flush to disk
-    if(fileTag==2)
+    if(fileTag==2){
         directory->Print();
+    }
     delete fileHdr;
     delete directory;
     delete freeMap;
@@ -490,3 +495,9 @@ FileSystem::Print()
     delete freeMap;
     delete directory;
 }
+
+/********************  I hava changed there ***********************/
+void FileSystem::CreateDir(char *name){
+    Create(name,-1);
+}
+/***************************  end  ***************************/

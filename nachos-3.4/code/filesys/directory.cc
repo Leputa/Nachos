@@ -109,7 +109,6 @@ int
 Directory::Find(char *name)
 {
     int i = FindIndex(name);
-
     if (i != -1)
         return table[i].sector;
     return -1;
@@ -150,7 +149,8 @@ Directory::Add(char *name, int newSector,int type)
     if (FindIndex(file_name) != -1)
         return FALSE;
     //判断各级目录是否存在
-    int lastPos=0;
+    //之前会切换，这里不需要了
+    /*int lastPos=0;
     for(int i=0;i<pos;i++){
         if(name[i]=='/'){
             char dir_name[FileNameMaxLen+1];
@@ -161,11 +161,12 @@ Directory::Add(char *name, int newSector,int type)
             dir_name[dir_pos]='\0';
             lastPos=i+1;
             //目录不存在，添加失败
+            //Print();
+            printf("%s\n",dir_name);
             if(FindIndex(dir_name)==-1)
                 return FALSE;
         }
-    }
-
+    }*/
     for (int i = 0; i < tableSize; i++)
         if (!table[i].inUse) {
             table[i].inUse = TRUE;
@@ -237,17 +238,17 @@ Directory::Print()
 
 /********************  I hava changed there ***********************/
 int Directory::FindDir(char *name){
-    int sector=1;  //实际OS应该从2开始
+    int sector=1;  //实际OS应该从2开始,但在nachos中通过directoryFile获取,而#define DirectorySector 1
     OpenFile *dir_file=new OpenFile(sector);
     Directory *dir=new Directory(10);
     dir->FetchFrom(dir_file);
     int str_pos=0;
     int sub_str_pos=0;
     char sub_str[10];
+    dir->Print();
     while(str_pos<strlen(name)){
-        if(name[str_pos]!='/')
-            sub_str[sub_str_pos++]=name[str_pos++];
-        else{
+        sub_str[sub_str_pos++]=name[str_pos++];
+        if(name[str_pos]=='/'){
             sub_str[sub_str_pos]='\0';
             //递归查找
             sector=dir->Find(sub_str);
@@ -258,6 +259,7 @@ int Directory::FindDir(char *name){
             sub_str_pos=0;
         }
     }
+    delete dir;
     return sector;
 }
 

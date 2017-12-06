@@ -88,7 +88,9 @@ class FileSystem {
     void List();			// List all the files in the file system
 
     void Print();			// List all the files and their contents
-
+    /***************************  end  ***************************/
+    void CreateDir(char *name);
+    /***************************  end  ***************************/
   private:
    OpenFile* freeMapFile;		// Bit map of free disk blocks,
 					// represented as a file
