@@ -1,4 +1,4 @@
-// directory.cc 
+// directory.cc
 //	Routines to manage a directory of file names.
 //
 //	The directory is a table of fixed length entries; each
@@ -17,7 +17,7 @@
 //	Fixing this is one of the parts to the assignment.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
@@ -49,9 +49,9 @@ Directory::Directory(int size)
 //----------------------------------------------------------------------
 
 Directory::~Directory()
-{ 
+{
     delete [] table;
-} 
+}
 
 //----------------------------------------------------------------------
 // Directory::FetchFrom
@@ -99,7 +99,7 @@ Directory::FindIndex(char *name)
 //----------------------------------------------------------------------
 // Directory::Find
 // 	Look up file name in directory, and return the disk sector number
-//	where the file's header is stored. Return -1 if the name isn't 
+//	where the file's header is stored. Return -1 if the name isn't
 //	in the directory.
 //
 //	"name" -- the file name to look up
@@ -111,7 +111,7 @@ Directory::Find(char *name)
     int i = FindIndex(name);
 
     if (i != -1)
-	return table[i].sector;
+        return table[i].sector;
     return -1;
 }
 
@@ -126,44 +126,80 @@ Directory::Find(char *name)
 //	"newSector" -- the disk sector containing the added file's header
 //----------------------------------------------------------------------
 
+/********************  I hava changed there ***********************/
+//这里的添加文件操作默认中间目录已经存在，而不能创建目录
 bool
-Directory::Add(char *name, int newSector)
-{ 
-    if (FindIndex(name) != -1)
-	return FALSE;
+Directory::Add(char *name, int newSector,int type)
+{
+    char file_name[FileNameMaxLen+1];
+    int pos=-1;
+    for(int i=strlen(name)-1;i>=0;i--){
+        if(name[i]=='/'){
+            pos=i+1;
+            break;
+        }
+    }
+    if(pos==-1)
+        pos=0;
+    for(int i=pos;i<strlen(name);i++)
+        file_name[j++]=name[i];
+    file_name[j]='\0';
+
+    //已经存在该文件，添加失败
+    if (FindIndex(file_name) != -1)
+        return FALSE;
+    //判断各级目录是否存在
+    int lastPos=0;
+    for(int i=0;i<pos;i++){
+        if(name[i]=='/'){
+            char dir_name[FileNameMaxLen+1];
+            int dir_pos=0;
+            for(int j=lastPos;j<i;j++){
+                dir_name[dir_pos++]=name[j];
+            }
+            dir_name[dir_pos]='\0';
+            lastPos=i+1;
+            //目录不存在，添加失败
+            if(FindIndex(dir_name)==-1)
+                return FALSE;
+        }
+    }
 
     for (int i = 0; i < tableSize; i++)
         if (!table[i].inUse) {
             table[i].inUse = TRUE;
-            strncpy(table[i].name, name, FileNameMaxLen); 
-            table[i].sector = newSector;
-        return TRUE;
-	}
+            strncpy(table[i].path,name,20)
+            strncpy(table[i].name, file_name, FileNameMaxLen);
+            table[i].sector = newSector; //inode
+            table[i].type=type;
+            return TRUE;
+        }
     return FALSE;	// no space.  Fix when we have extensible files.
 }
+/***************************  end  ***************************/
 
 //----------------------------------------------------------------------
 // Directory::Remove
 // 	Remove a file name from the directory.  Return TRUE if successful;
-//	return FALSE if the file isn't in the directory. 
+//	return FALSE if the file isn't in the directory.
 //
 //	"name" -- the file name to be removed
 //----------------------------------------------------------------------
 
 bool
 Directory::Remove(char *name)
-{ 
+{
     int i = FindIndex(name);
 
     if (i == -1)
 	return FALSE; 		// name not in directory
     table[i].inUse = FALSE;
-    return TRUE;	
+    return TRUE;
 }
 
 //----------------------------------------------------------------------
 // Directory::List
-// 	List all the file names in the directory. 
+// 	List all the file names in the directory.
 //----------------------------------------------------------------------
 
 void
@@ -182,7 +218,7 @@ Directory::List()
 
 void
 Directory::Print()
-{ 
+{
     FileHeader *hdr = new FileHeader;
 
     printf("Directory contents:\n");
@@ -195,3 +231,30 @@ Directory::Print()
     printf("\n");
     delete hdr;
 }
+
+/********************  I hava changed there ***********************/
+int Directory::FindDir(char *name){
+    int sector=1;  //实际OS应该从2开始
+    OpenFile *dir_file=new OpenFile(sector);
+    Directory *dir=new Directory(10);
+    dir->FetchFrom(dir_file);
+    int str_pos=0;
+    int sub_str_pos=0;
+    char sub_str[10];
+    while(str_pos<strlen(name)){
+        if(name[str_pos]!='/')
+            sub_str[sub_str_pos++]=name[str_pos++];
+        else{
+            sub_str[sub_str_pos]='\0';
+            //递归查找
+            sector=dir->Find(sub_str);
+            dir_file=new OpenFile(sector);
+            dir=new Directory(10);
+            dir->FetchFrom(dir_file);
+            str_pos++;
+            sub_str_pos=0;
+        }
+    }
+    return sector;
+}
+/***************************  end  ***************************/

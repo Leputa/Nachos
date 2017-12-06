@@ -184,8 +184,28 @@ FileSystem::Create(char *name, int initialSize)
 
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
+    /********************  I hava changed there ***********************/
+    //打开文件目录
+    int name_sector=directory->FindDir(name);
+    OpenFile *name_dir=new OpenFile(name_sector);
+    directory->FetchFrom(name_dir);
+    //获取不包含目录的文件名
+    char file_name[FileNameMaxLen+1];
+    int pos=-1;
+    for(int i=strlen(name)-1;i>=0;i--){
+        if(name[i]=='/'){
+            pos=i+1;
+            break;
+        }
+    }
+    if(pos==-1)
+        pos=0;
+    for(int i=pos;i<strlen(name);i++)
+        file_name[j++]=name[i];
+    file_name[j]='\0';
+    /***************************  end  ***************************/
 
-    if (directory->Find(name) != -1)
+    if (directory->Find(file_name) != -1)
       success = FALSE;			// file is already in directory
     else {
         freeMap = new BitMap(NumSectors);
@@ -193,41 +213,63 @@ FileSystem::Create(char *name, int initialSize)
         sector = freeMap->Find();	// find a sector to hold the file header
     	if (sector == -1)
             success = FALSE;		// no free block for file header
-        else if (!directory->Add(name, sector))
-            success = FALSE;	// no space in directory
-	else {
-    	    hdr = new FileHeader;
-	    if (!hdr->Allocate(freeMap, initialSize))
-            	success = FALSE;	// no space on disk for data
-	    else {
-	    	success = TRUE;
-	    	/********************  I hava changed there ***********************/
-	    	//根据文件名获取文件类型
-            int name_position=0;
-            for (int i=0;i<strlen(name);i++){
-                if(name[i]=='.'){
-                    name_position=i;
-                    break;
-                }
-            }
-            strcpy(hdr->type,name+name_position);
-            //设置文件的创建时间，上次访问时间，上次修改时间
-            printf("Create:\n");
-            hdr->set_create_time();
-            printf("create-time: %s\n",hdr->create_time);
-            hdr->set_last_visit_time();
-            printf("visit-time: %s\n",hdr->last_visit_time);
-            hdr->set_last_modified_time();
-            printf("modify-time: %s\n",hdr->last_modified_time);
-            hdr->sector_position=sector;
-            /***************************  end  ***************************/
-		// everthing worked, flush all changes back to disk
-    	    	hdr->WriteBack(sector);
-    	    	directory->WriteBack(directoryFile);
-    	    	freeMap->WriteBack(freeMapFile);
-	    }
+        /********************  I hava changed there ***********************/
+        //文件类型为目录文件
+        if (initialSize==-1){
+            if(!directory->Add(name,sector,0))
+                return FALSE;
+            hdr=new FileHeader;
+            initialSize=DirectoryFileSize;
+            if(!hdr->Allocate(freeMap,initialSize))
+                return FALSE;
+            success=TRUE;
+            hdr->WriteBack(sector);
+            Directory *dir=new Directory(NumDirEntries);
+            openFile *dir_file=new OpenFile(sector);
+            dir->WriteBack(name_dir);
+            freeMap->WriteBack(freeMapFile);
             delete hdr;
-	}
+            delete dir;
+            delete dir_file;
+        }
+        /***************************  end  ***************************/
+        else{
+            if (!directory->Add(name, sector))
+                success = FALSE;	// no space in directory
+            else {
+                hdr = new FileHeader;
+                if (!hdr->Allocate(freeMap, initialSize))
+                    success = FALSE;	// no space on disk for data
+                else {
+                    success = TRUE;
+                    /********************  I hava changed there ***********************/
+                    //根据文件名获取文件类型
+                    int name_position=0;
+                    for (int i=0;i<strlen(file_name);i++){
+                        if(file_name[i]=='.'){
+                            name_position=i;
+                            break;
+                        }
+                    }
+                    strcpy(hdr->type,file_name+name_position);
+                    //设置文件的创建时间，上次访问时间，上次修改时间
+                    printf("Create:\n");
+                    hdr->set_create_time();
+                    hdr->set_last_visit_time();
+                    hdr->set_last_modified_time();
+                    hdr->sector_position=sector;
+                    printf("create-time: %s\n",hdr->create_time);
+                    printf("visit-time: %s\n",hdr->last_visit_time);
+                    printf("modify-time: %s\n",hdr->last_modified_time);
+                    /***************************  end  ***************************/
+                // everthing worked, flush all changes back to disk
+                    hdr->WriteBack(sector);
+                    directory->WriteBack(directoryFile);
+                    freeMap->WriteBack(freeMapFile);
+                }
+                delete hdr;
+            }
+        }
         delete freeMap;
     }
     delete directory;
@@ -250,7 +292,8 @@ FileSystem::Open(char *name)
     Directory *directory = new Directory(NumDirEntries);
     OpenFile *openFile = NULL;
     int sector;
-    DEBUG('f', "Opening file %s\n", name);
+    /********************  I hava changed there ***********************/
+    //DEBUG('f', "Opening file %s\n", name);
     directory->FetchFrom(directoryFile);
     sector = directory->Find(name);
     if (sector >= 0)
