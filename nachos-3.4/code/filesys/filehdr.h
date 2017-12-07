@@ -20,9 +20,14 @@
 /********************  I hava changed there ***********************/
 //#define NumDirect ((SectorSize - 2 * sizeof(int)) / sizeof(int))
 //减少了直接索引数量
-#define NumDirect 	((SectorSize - 2 * sizeof(int)-79 *sizeof(char)) / sizeof(int))
+//#define NumDirect 	((SectorSize - 2 * sizeof(int)-79 *sizeof(char)) / sizeof(int))
+//#define MaxFileSize (NumDirect * SectorSize)
+#define NumDirect 30
+#define SectorInt 32
+//29*128+32*128=7808
+#define MaxFileSize 7808
 /******************************  end  *****************************/
-#define MaxFileSize (NumDirect * SectorSize)
+
 
 // The following class defines the Nachos "file header" (in UNIX terms,
 // the "i-node"), describing where on disk to find all of the data in the file.
@@ -75,8 +80,7 @@ class FileHeader {
   private:
     int numBytes;			// Number of bytes in the file
     int numSectors;			// Number of data sectors in the file
-    int dataSectors[NumDirect];		// Disk sector numbers for each data
-					// block in the file
+    int dataSectors[NumDirect];	// 记录分配的磁盘块号 Disk sector numbers for each data block in the file
 };
 
 #endif // FILEHDR_H

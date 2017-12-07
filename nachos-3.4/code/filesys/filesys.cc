@@ -384,7 +384,7 @@ FileSystem::Remove(char *name)
     directory = new Directory(NumDirEntries);
     directory->FetchFrom(directoryFile);
     dir_sector = directory->FindDir(name);
-    //若目录存在,先打开目录并获取目录文件
+    //若文件目录存在,先打开目录并获取目录文件
     if(dir_sector>=0)
         openFile=new OpenFile(dir_sector);
     directory->FetchFrom(openFile);
@@ -430,12 +430,12 @@ FileSystem::Remove(char *name)
 
     fileHdr->Deallocate(freeMap);  		// remove data blocks
     freeMap->Clear(sector);			// remove header block
-    directory->Remove(name);
+    directory->Remove(file_name);
 
     freeMap->WriteBack(freeMapFile);		// flush to disk
-    directory->WriteBack(directoryFile);        // flush to disk
+    directory->WriteBack(openFile);        // flush to disk
     if(fileTag==2){
-        directory->Print();
+        printf("successfully delete\n");
     }
     delete fileHdr;
     delete directory;

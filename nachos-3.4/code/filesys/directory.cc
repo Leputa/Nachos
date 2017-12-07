@@ -126,7 +126,6 @@ Directory::Find(char *name)
 //----------------------------------------------------------------------
 
 /********************  I hava changed there ***********************/
-//这里的添加文件操作默认中间目录已经存在，而不能创建目录
 bool
 Directory::Add(char *name, int newSector,int type)
 {
@@ -245,7 +244,6 @@ int Directory::FindDir(char *name){
     int str_pos=0;
     int sub_str_pos=0;
     char sub_str[10];
-    dir->Print();
     while(str_pos<strlen(name)){
         sub_str[sub_str_pos++]=name[str_pos++];
         if(name[str_pos]=='/'){
@@ -271,10 +269,10 @@ int Directory::GetType(char *file_name){
 }
 
 bool Directory::IsEmpty(){
-    int tag=FALSE;
+    int tag=TRUE;
     for (int i=0;i<tableSize;i++)
         if(table[i].inUse){
-            tag=TRUE;
+            tag=FALSE;
             break;
         }
     return tag;

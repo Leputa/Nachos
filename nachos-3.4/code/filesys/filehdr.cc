@@ -44,10 +44,24 @@ FileHeader::Allocate(BitMap *freeMap, int fileSize)
     numBytes = fileSize;
     numSectors  = divRoundUp(fileSize, SectorSize);
     if (freeMap->NumClear() < numSectors)
-	return FALSE;		// not enough space
+        return FALSE;		// not enough space
 
-    for (int i = 0; i < numSectors; i++)
-	dataSectors[i] = freeMap->Find();
+    /********************  I hava changed there ***********************/
+    if(numSectors<NumDirect){
+        for (int i = 0; i < numSectors; i++)
+            dataSectors[i] = freeMap->Find();
+    }
+    else {
+        for (int i = 0; i < NumDirect-1; i++)
+            dataSectors[i] = freeMap->Find();
+        dataSectors[NumDirect-1]=freeMap->Find();
+        int indirect_index[32];
+        for (int i = 0; i < numSectors-NumDirect+1;i++)
+            indirect_index[i]=freeMap->Find();
+        //间接索索写回磁盘
+        synchDisk->WriteSector(dataSectors[NumDirect-1],(char *)indirect_index);
+    }
+    /***************************  end  ***************************/
     return TRUE;
 }
 
@@ -61,10 +75,24 @@ FileHeader::Allocate(BitMap *freeMap, int fileSize)
 void
 FileHeader::Deallocate(BitMap *freeMap)
 {
-    for (int i = 0; i < numSectors; i++) {
-	ASSERT(freeMap->Test((int) dataSectors[i]));  // ought to be marked!
-	freeMap->Clear((int) dataSectors[i]);
+    /********************  I hava changed there ***********************/
+    if(numSectors<NumDirect){
+        for (int i = 0; i < numSectors; i++) {
+            ASSERT(freeMap->Test((int) dataSectors[i]));  // ought to be marked!
+            freeMap->Clear((int) dataSectors[i]);
+        }
+    }else{
+        char *indirect_index=new char[SectorSize];
+        synchDisk->ReadSector(dataSectors[NumDirect-1],indirect_index);
+        for (int i = 0; i < numSectors-NumDirect+1;i++){
+            //char 8bit,int 32bit
+            freeMap->Clear((int)indirect_index[i * 4]);
+        }
+        for (int i = 0; i < NumDirect;i++){
+            freeMap->Clear((int)dataSectors[i]);
+        }
     }
+    /***************************  end  ***************************/
 }
 
 //----------------------------------------------------------------------
@@ -106,7 +134,17 @@ FileHeader::WriteBack(int sector)
 int
 FileHeader::ByteToSector(int offset)
 {
-    return(dataSectors[offset / SectorSize]);
+    /********************  I hava changed there ***********************/
+    //29*128=3712
+    if(offset<3712)
+        return(dataSectors[offset / SectorSize]);
+    else {
+        int sector_position=(offset-3712)/128;
+        char *indirect_index=new char[SectorSize];
+        synchDisk->ReadSector(dataSectors[NumDirect-1],indirect_index);
+        return int(indirect_index[sector_position*4]);
+    }
+    /***************************  end  ***************************/
 }
 
 //----------------------------------------------------------------------
@@ -133,19 +171,61 @@ FileHeader::Print()
     char *data = new char[SectorSize];
 
     printf("FileHeader contents.  File size: %d.  File blocks:\n", numBytes);
-    for (i = 0; i < numSectors; i++)
-        printf("%d ", dataSectors[i]);
-    printf("\nFile contents:\n");
-    for (i = k = 0; i < numSectors; i++) {
-	synchDisk->ReadSector(dataSectors[i], data);
-        for (j = 0; (j < SectorSize) && (k < numBytes); j++, k++) {
-	    if ('\040' <= data[j] && data[j] <= '\176')   // isprint(data[j])
-		printf("%c", data[j]);
-            else
-		printf("\\%x", (unsigned char)data[j]);
-	}
-        printf("\n");
+    /********************  I hava changed there ***********************/
+    if (numSectors < NumDirect){
+        for (i = 0; i < numSectors; i++)
+            printf("%d ", dataSectors[i]);
+    }else{
+        printf("indirect_index: %d\n",dataSectors[NumDirect-1]);
+        for (i = 0; i < NumDirect - 1; i++)
+            printf("%d ", dataSectors[i]);
+        char *indirect_index=new char[SectorSize];
+        synchDisk->ReadSector(dataSectors[NumDirect-1],indirect_index);
+        j=0;
+        for (i = 0; i < numSectors-NumDirect+1;i++){
+            printf("%d ",int(indirect_index[j]));
+            j+=4;
+        }
     }
+    /***************************  end  ***************************/
+    printf("\nFile contents:\n");
+    /********************  I hava changed there ***********************/
+    if (numSectors < NumDirect){
+        for (i = k = 0; i < numSectors; i++) {
+            synchDisk->ReadSector(dataSectors[i], data);
+            for (j = 0; (j < SectorSize) && (k < numBytes); j++, k++) {
+                if ('\040' <= data[j] && data[j] <= '\176')   // isprint(data[j])
+                    printf("%c", data[j]);
+                else
+                    printf("\\%x", (unsigned char)data[j]);
+            }
+        }
+    }else{
+        for (i = k = 0;i<NumDirect-1;i++){
+            printf("Sector: %d\n",dataSectors[i]);
+            synchDisk->ReadSector(dataSectors[i],data);
+            for(j=0;(j<SectorSize)&&(k<numBytes);j++,k++){
+                if ('\040' <= data[j] && data[j] <= '\176')   // isprint(data[j])
+                    printf("%c", data[j]);
+                else
+                    printf("\\%x", (unsigned char)data[j]);
+            }
+        }
+        char *indirect_index =new char[SectorSize];
+        synchDisk->ReadSector(dataSectors[NumDirect-1],indirect_index); //读一级索引
+        for (i=0;i<numSectors-NumDirect+1;i++){
+            printf("Sector: %d\n",int(indirect_index[i*4]));
+            synchDisk->ReadSector(int(indirect_index[i*4]),data);
+             for (j = 0; (j < SectorSize) && (k < numBytes); j++, k++) {
+                if ('\040' <= data[j] && data[j] <= '\176')   // isprint(data[j])
+                    printf("%c", data[j]);
+                else
+                    printf("\\%x", (unsigned char)data[j]);
+            }
+        }
+    }
+    printf("\n");
+
     delete [] data;
     /********************  I hava changed there ***********************/
     if(fileTag==1){
