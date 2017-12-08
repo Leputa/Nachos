@@ -95,9 +95,13 @@ OpenFile::Write(char *into, int numBytes)
     hdr->set_last_modified_time();
     hdr->WriteBack(hdr->sector_position);
     /***************************  end  ***************************/
-   int result = WriteAt(into, numBytes, seekPosition);
-   seekPosition += result;
-   return result;
+    int result = WriteAt(into, numBytes, seekPosition);
+    seekPosition += result;
+    /********************  I hava changed there ***********************/
+    if(fileTag==4)
+        printf("Writing from %d to %d\n",seekPosition,seekPosition+result);
+    /***************************  end  ***************************/
+    return result;
 }
 
 //----------------------------------------------------------------------
@@ -164,10 +168,20 @@ OpenFile::WriteAt(char *from, int numBytes, int position)
     bool firstAligned, lastAligned;
     char *buf;
 
-    if ((numBytes <= 0) || (position >= fileLength))
-	return 0;				// check request
-    if ((position + numBytes) > fileLength)
-	numBytes = fileLength - position;
+    /********************  I hava changed there ***********************/
+    /*if ((numBytes <= 0) || (position >= fileLength))
+        return 0;				// check request
+    */
+    if ((position + numBytes) > fileLength){
+        OpenFile*freeMapFile=new OpenFile(0); //空闲磁盘块分配表在0号磁盘
+        BitMap*freeMap=new BitMap(NumSectors);
+        freeMap->FetchFrom(freeMapFile);
+        hdr->Extend(freeMap,position+numBytes-fileLength);
+        hdr->WriteBack(hdr->sector_position);
+        delete freeMapFile;
+        //numBytes = fileLength - position; //fileLength被突破
+	}
+	/******************************  end  *****************************/
     DEBUG('f', "Writing %d bytes at %d, from file of length %d.\n",
 			numBytes, position, fileLength);
 

@@ -15,6 +15,7 @@
 #include "copyright.h"
 
 #include "utility.h"
+#include "filehdr.h"
 #include "filesys.h"
 #include "system.h"
 #include "thread.h"
@@ -112,7 +113,9 @@ Print(char *name)
 #define FileName 	"TestFile"
 #define Contents 	"1234567890"
 #define ContentSize 	strlen(Contents)
-#define FileSize 	((int)(ContentSize * 5000))
+/********************  I hava changed there ***********************/
+#define FileSize 	((int)(ContentSize * 30))   //5000会把linux的堆爆了，指能改小点啦
+/******************************  end  *****************************/
 
 static void
 FileWrite()
@@ -128,16 +131,16 @@ FileWrite()
     }
     openFile = fileSystem->Open(FileName);
     if (openFile == NULL) {
-	printf("Perf test: unable to open %s\n", FileName);
-	return;
+        printf("Perf test: unable to open %s\n", FileName);
+        return;
     }
     for (i = 0; i < FileSize; i += ContentSize) {
         numBytes = openFile->Write(Contents, ContentSize);
-	if (numBytes < 10) {
-	    printf("Perf test: unable to write %s\n", FileName);
-	    delete openFile;
-	    return;
-	}
+        if (numBytes < 10) {
+            printf("Perf test: unable to write %s\n", FileName);
+            delete openFile;
+            return;
+        }
     }
     delete openFile;	// close file
 }
@@ -153,18 +156,18 @@ FileRead()
 	FileSize, ContentSize);
 
     if ((openFile = fileSystem->Open(FileName)) == NULL) {
-	printf("Perf test: unable to open file %s\n", FileName);
-	delete [] buffer;
-	return;
-    }
+        printf("Perf test: unable to open file %s\n", FileName);
+        delete [] buffer;
+        return;
+        }
     for (i = 0; i < FileSize; i += ContentSize) {
         numBytes = openFile->Read(buffer, ContentSize);
-	if ((numBytes < 10) || strncmp(buffer, Contents, ContentSize)) {
-	    printf("Perf test: unable to read %s\n", FileName);
-	    delete openFile;
-	    delete [] buffer;
-	    return;
-	}
+        if ((numBytes < 10) || strncmp(buffer, Contents, ContentSize)) {
+            printf("Perf test: unable to read %s\n", FileName);
+            delete openFile;
+            delete [] buffer;
+            return;
+        }
     }
     delete [] buffer;
     delete openFile;	// close file

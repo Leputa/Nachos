@@ -87,6 +87,7 @@ FileSystem::FileSystem(bool format)
     printf("if you'd like to test lab5 Exercise2 'FileHeader'attributes',please input '1'\n");
     printf("if you'd like to test lab5 Exercise4 'Multilevel directory',please input '2'\n");
     printf("if you'd like to test lab5 Exercise3 'Extending file's length',please input '3'\n");
+    printf("if you'd like to test lab5 Exercise5 'Dynamically adjusting file's length',please input '4'\n");
     scanf("%d",&fileTag);
     /***************************  end  ***************************/
 
@@ -329,11 +330,12 @@ FileSystem::Open(char *name)
     /********************  I hava changed there ***********************/
     //DEBUG('f', "Opening file %s\n", name);
     directory->FetchFrom(directoryFile);
-    sector = directory->FindDir(name);
+    sector = directory->FindDir(name);   //该文件目录所在的磁盘块
     directory=new Directory(NumDirEntries);
     if (sector >= 0)
         openFile = new OpenFile(sector);	// name was found in directory
     directory->FetchFrom(openFile);
+    /******************************/
     char file_name[FileNameMaxLen+1];
     int pos=-1;
     for(int i=strlen(name)-1;i>=0;i--){
@@ -348,8 +350,9 @@ FileSystem::Open(char *name)
     for(int i=pos;i<strlen(name);i++)
         file_name[j++]=name[i];
     file_name[j]='\0';
+    /******************************/
     //printf("%s\n",file_name);
-    sector=directory->Find(file_name);
+    sector=directory->Find(file_name);  //文件所在的磁盘块
     if(sector>=0)
         openFile=new OpenFile(sector);
     /***************************  end  ***************************/

@@ -74,6 +74,7 @@ class FileHeader {
     void set_last_modified_time();
 
     int sector_position;  //记录首块位置
+    bool Extend(BitMap *freeMap,int bytes);
     /******************************  end  *****************************/
 
   private:

@@ -81,7 +81,7 @@ FileHeader::Deallocate(BitMap *freeMap)
     /********************  I hava changed there ***********************/
     if(numSectors<NumDirect){
         for (int i = 0; i < numSectors; i++) {
-            ASSERT(freeMap->Test((int) dataSectors[i]));  // ought to be marked!
+            //ASSERT(freeMap->Test((int) dataSectors[i]));  // ought to be marked!
             freeMap->Clear((int) dataSectors[i]);
         }
     }else{
@@ -262,6 +262,20 @@ void FileHeader::set_last_modified_time(){
     time(&timep);
     strncpy(last_modified_time,asctime(gmtime(&timep)),25);
     last_modified_time[24]='\0';
+}
+
+bool FileHeader::Extend(BitMap *freeMap,int bytes){
+    numBytes=numBytes+bytes;
+    int last_sector=numSectors;
+    numSectors=divRoundUp(numBytes,SectorSize);
+    if(last_sector==numSectors)
+        return TRUE;
+    if( freeMap->NumClear()<numSectors-last_sector)
+        return FALSE;
+    printf("extend %d sectors\n",numSectors-last_sector);
+    for (int i=last_sector;i<numSectors;i++)
+        dataSectors[i]=freeMap->Find();
+    return TRUE;
 }
 /***************************  end  ***************************/
 
