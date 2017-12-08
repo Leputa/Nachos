@@ -55,11 +55,14 @@ FileHeader::Allocate(BitMap *freeMap, int fileSize)
         for (int i = 0; i < NumDirect-1; i++)
             dataSectors[i] = freeMap->Find();
         dataSectors[NumDirect-1]=freeMap->Find();
+        printf("%d\n",dataSectors[NumDirect-1]);
         int indirect_index[32];
-        for (int i = 0; i < numSectors-NumDirect+1;i++)
+        for (int i = 0; i < numSectors-NumDirect+1;i++){
             indirect_index[i]=freeMap->Find();
+        }
         //间接索索写回磁盘
         synchDisk->WriteSector(dataSectors[NumDirect-1],(char *)indirect_index);
+        printf("%d\n",dataSectors[NumDirect-1]);
     }
     /***************************  end  ***************************/
     return TRUE;
@@ -136,10 +139,10 @@ FileHeader::ByteToSector(int offset)
 {
     /********************  I hava changed there ***********************/
     //29*128=3712
-    if(offset<3712)
+    if(offset<(NumDirect-1)*128)
         return(dataSectors[offset / SectorSize]);
     else {
-        int sector_position=(offset-3712)/128;
+        int sector_position=(offset-(NumDirect-1)*128)/128;
         char *indirect_index=new char[SectorSize];
         synchDisk->ReadSector(dataSectors[NumDirect-1],indirect_index);
         return int(indirect_index[sector_position*4]);

@@ -86,6 +86,7 @@ FileSystem::FileSystem(bool format)
     /********************  I hava changed there ***********************/
     printf("if you'd like to test lab5 Exercise2 'FileHeader'attributes',please input '1'\n");
     printf("if you'd like to test lab5 Exercise4 'Multilevel directory',please input '2'\n");
+    printf("if you'd like to test lab5 Exercise3 'Extending file's length',please input '3'\n");
     scanf("%d",&fileTag);
     /***************************  end  ***************************/
 

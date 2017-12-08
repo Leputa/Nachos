@@ -47,6 +47,7 @@ Copy(char *from, char *to)
     fileLength = ftell(fp);
     fseek(fp, 0, 0);
 
+
 // Create a Nachos file of the same length
     DEBUG('f', "Copying file %s, size %d, to file %s\n", from, fileLength, to);
     if (!fileSystem->Create(to, fileLength)) {	 // Create Nachos file

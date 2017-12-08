@@ -22,10 +22,9 @@
 //减少了直接索引数量
 //#define NumDirect 	((SectorSize - 2 * sizeof(int)-79 *sizeof(char)) / sizeof(int))
 //#define MaxFileSize (NumDirect * SectorSize)
-#define NumDirect 30
+#define NumDirect 9
 #define SectorInt 32
-//29*128+32*128=7808
-#define MaxFileSize 7808
+#define MaxFileSize (NumDirect-1)*128+SectorInt*128
 /******************************  end  *****************************/
 
 
