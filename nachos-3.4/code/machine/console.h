@@ -72,15 +72,16 @@ class Console {
 					// if there is one available.
 					// Otherwise contains EOF.
 };
-
+/***************************  end  ***************************/
 class SynchConsole{
     public:
         SynchConsole(char *readFile,char *writeFile);
         ~SynchConsole();
         void PutChar(char ch);
-        char Getchar();
+        char GetChar();
     private:
         Console *console;
         Lock *lock;
 };
+/***************************  end  ***************************/
 #endif // CONSOLE_H

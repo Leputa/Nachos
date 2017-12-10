@@ -149,11 +149,14 @@ Console::PutChar(char ch)
 					ConsoleWriteInt);
 }
 
+/*******************  I hava change here **********************/
 static Semaphore *readAvail=new Semaphore("read avail",0);
 static Semaphore *writeDone=new Semaphore("write done",0);
 
 static void ReadAvail(int arg) { readAvail->V(); }
 static void WriteDone(int arg) { writeDone->V(); }
+
+
 
 SynchConsole::SynchConsole(char *readFile,char *writeFile){
     lock=new Lock("console");
@@ -172,10 +175,11 @@ void SynchConsole::PutChar(char ch){
     lock->Release();
 }
 
-char SynchConsole::Getchar(){
+char SynchConsole::GetChar(){
     lock->Acquire();
     readAvail->P();
     char ch=console->GetChar();
     lock->Release();
     return ch;
 }
+/***************************  end  ***************************/

@@ -148,6 +148,7 @@ StartProcess(char *filename)
 // I/O requests wait on a Semaphore to delay until the I/O completes.
 
 static Console *console;
+static SynchConsole *synchconsole;
 static Semaphore *readAvail;
 static Semaphore *writeDone;
 
