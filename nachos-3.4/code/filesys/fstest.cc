@@ -114,7 +114,7 @@ Print(char *name)
 #define Contents 	"1234567890"
 #define ContentSize 	strlen(Contents)
 /********************  I hava changed there ***********************/
-#define FileSize 	((int)(ContentSize * 30))   //5000会把linux的堆爆了，指能改小点啦
+#define FileSize 	((int)(ContentSize * 30))   //5000会因为控制台大量输出把linux的堆爆了，只能改小点啦
 /******************************  end  *****************************/
 
 static void
