@@ -115,6 +115,7 @@ main(int argc, char **argv)
             StartProcess(*(argv + 1));
             argCount = 2;
         } else if (!strcmp(*argv, "-c")) {      // test the console
+
 	    if (argc == 1)
 	        ConsoleTest(NULL, NULL);
 	    else {

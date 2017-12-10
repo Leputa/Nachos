@@ -1,4 +1,4 @@
-// console.cc 
+// console.cc
 //	Routines to simulate a serial port to a console device.
 //	A console has input (a keyboard) and output (a display).
 //	These are each simulated by operations on UNIX files.
@@ -10,7 +10,7 @@
 //  DO NOT CHANGE -- part of the machine emulation
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
@@ -18,7 +18,7 @@
 #include "system.h"
 
 // Dummy functions because C++ is weird about pointers to member functions
-static void ConsoleReadPoll(int c) 
+static void ConsoleReadPoll(int c)
 { Console *console = (Console *)c; console->CheckCharAvail(); }
 static void ConsoleWriteDone(int c)
 { Console *console = (Console *)c; console->WriteDone(); }
@@ -36,7 +36,7 @@ static void ConsoleWriteDone(int c)
 //		output
 //----------------------------------------------------------------------
 
-Console::Console(char *readFile, char *writeFile, VoidFunctionPtr readAvail, 
+Console::Console(char *readFile, char *writeFile, VoidFunctionPtr readAvail,
 		VoidFunctionPtr writeDone, int callArg)
 {
     if (readFile == NULL)
@@ -79,8 +79,8 @@ Console::~Console()
 //
 //	Only read it in if there is buffer space for it (if the previous
 //	character has been grabbed out of the buffer by the Nachos kernel).
-//	Invoke the "read" interrupt handler, once the character has been 
-//	put into the buffer. 
+//	Invoke the "read" interrupt handler, once the character has been
+//	put into the buffer.
 //----------------------------------------------------------------------
 
 void
@@ -89,18 +89,18 @@ Console::CheckCharAvail()
     char c;
 
     // schedule the next time to poll for a packet
-    interrupt->Schedule(ConsoleReadPoll, (int)this, ConsoleTime, 
+    interrupt->Schedule(ConsoleReadPoll, (int)this, ConsoleTime,
 			ConsoleReadInt);
 
     // do nothing if character is already buffered, or none to be read
     if ((incoming != EOF) || !PollFile(readFileNo))
-	return;	  
+	return;
 
     // otherwise, read character and tell user about it
     Read(readFileNo, &c, sizeof(char));
     incoming = c ;
     stats->numConsoleCharsRead++;
-    (*readHandler)(handlerArg);	
+    (*readHandler)(handlerArg);
 }
 
 //----------------------------------------------------------------------
@@ -135,7 +135,7 @@ Console::GetChar()
 
 //----------------------------------------------------------------------
 // Console::PutChar()
-// 	Write a character to the simulated display, schedule an interrupt 
+// 	Write a character to the simulated display, schedule an interrupt
 //	to occur in the future, and return.
 //----------------------------------------------------------------------
 
@@ -147,4 +147,35 @@ Console::PutChar(char ch)
     putBusy = TRUE;
     interrupt->Schedule(ConsoleWriteDone, (int)this, ConsoleTime,
 					ConsoleWriteInt);
+}
+
+static Semaphore *readAvail=new Semaphore("read avail",0);
+static Semaphore *writeDone=new Semaphore("write done",0);
+
+static void ReadAvail(int arg) { readAvail->V(); }
+static void WriteDone(int arg) { writeDone->V(); }
+
+SynchConsole::SynchConsole(char *readFile,char *writeFile){
+    lock=new Lock("console");
+    console=new Console(readFile,writeFile,ReadAvail,WriteDone,0);
+}
+
+SynchConsole::~SynchConsole(){
+    delete lock;
+    delete console;
+}
+
+void SynchConsole::PutChar(char ch){
+    lock->Acquire();
+    console->PutChar(ch);
+    writeDone->P();
+    lock->Release();
+}
+
+char SynchConsole::Getchar(){
+    lock->Acquire();
+    readAvail->P();
+    char ch=console->GetChar();
+    lock->Release();
+    return ch;
 }

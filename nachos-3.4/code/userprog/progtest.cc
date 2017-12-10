@@ -170,15 +170,19 @@ ConsoleTest (char *in, char *out)
 {
     char ch;
 
-    console = new Console(in, out, ReadAvail, WriteDone, 0);
+    /*******************  I hava change here **********************/
+    //console = new Console(in, out, ReadAvail, WriteDone, 0);
+    synchconsole = new SynchConsole(in, out);
+
     readAvail = new Semaphore("read avail", 0);
     writeDone = new Semaphore("write done", 0);
 
     for (;;) {
-	readAvail->P();		// wait for character to arrive
-	ch = console->GetChar();
-	console->PutChar(ch);	// echo it!
-	writeDone->P() ;        // wait for write to finish
-	if (ch == 'q') return;  // if q, quit
+        //readAvail->P();		// wait for character to arrive
+        ch = synchconsole->GetChar();
+        synchconsole->PutChar(ch);	// echo it!
+        //writeDone->P() ;        // wait for write to finish
+        if (ch == 'q') return;  // if q, quit
     }
+    /***************************  end  ***************************/
 }
