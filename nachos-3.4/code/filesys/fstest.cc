@@ -173,12 +173,26 @@ FileRead()
     delete openFile;	// close file
 }
 
+/********************  I hava changed there ***********************/
+void read(){
+    printf("%s begin reading file.\n",currentThread->getName());
+    FileRead();
+}
+
+
 void
 PerformanceTest()
 {
     printf("Starting file system performance test:\n");
     stats->Print();
     FileWrite();
+    /********************  I hava changed there ***********************/
+    if(fileTag==6){
+        Thread*thread1=new Thread("Reader1");
+        Thread*thread2=new Thread("Reader2");
+        thread1->Fork(read,1);
+        thread2->Fork(read,2);
+    }
     FileRead();
     if (!fileSystem->Remove(FileName)) {
       printf("Perf test: unable to remove %s\n", FileName);

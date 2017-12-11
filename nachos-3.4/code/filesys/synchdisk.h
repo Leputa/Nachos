@@ -39,10 +39,22 @@ class SynchDisk {
     void WriteSector(int sectorNumber, char* data);
 
     void RequestDone();			// Called by the disk device interrupt
-					// handler, to signal that the
-					// current disk operation is complete.
+					// handler, to signal that the current disk operation is complete.
+    /********************  I hava changed there ***********************/
+    void PlusReader(int sector);   //增加读者
+    void MinusReader(int sector);  //减少读者
+    void BeginWrite(int sector);   //第一个读者开始读或写者开始写
+    void EndWrite(int sector);     //最后一个读者读结束，或者写者写结束
+    int numVisitors[NumSectors];   //记录访问某磁盘块的线程数量
+    /***************************  end  ***************************/
+
 
   private:
+    /********************  I hava changed there ***********************/
+    Semaphore *mutex[NumSectors];   //文件访问信号量
+    int numReaders[NumSectors];     //各个文件的读者数量
+    Lock *rLock;                    //保证和读者数量相关操作互斥
+    /***************************  end  ***************************/
     Disk *disk;		  		// Raw disk device
     Semaphore *semaphore; 		// To synchronize requesting thread
 					// with the interrupt handler

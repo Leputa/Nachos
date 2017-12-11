@@ -34,6 +34,7 @@ OpenFile::OpenFile(int sector)
     /********************  I hava changed there ***********************/
     if(fileTag==1||fileTag==3)
         hdr->Print();
+    synchDisk->numVisitors[hdr->sector_position]++;
     /***************************  end  ***************************/
     seekPosition = 0;
 }
@@ -45,6 +46,9 @@ OpenFile::OpenFile(int sector)
 
 OpenFile::~OpenFile()
 {
+    /********************  I hava changed there ***********************/
+    synchDisk->numVisitors[hdr->sector_position]--;
+    /***************************  end  ***************************/
     delete hdr;
 }
 
@@ -79,27 +83,33 @@ int
 OpenFile::Read(char *into, int numBytes)
 {
     /********************  I hava changed there ***********************/
+    synchDisk->PlusReader(hdr->sector_position);
     hdr->set_last_visit_time();
     hdr->WriteBack(hdr->sector_position);
+    int result = ReadAt(into, numBytes, seekPosition);
+    if(fileTag==8)
+        currentThread->Yield();
+    seekPosition += result;
+    synchDisk->MinusReader(hdr->sector_position);
     /***************************  end  ***************************/
-   int result = ReadAt(into, numBytes, seekPosition);
-   seekPosition += result;
-   return result;
+    return result;
 }
 
 int
 OpenFile::Write(char *into, int numBytes)
 {
     /********************  I hava changed there ***********************/
+    synchDisk->BeginWrite(hdr->sector_position);
     hdr->set_last_visit_time();
     hdr->set_last_modified_time();
     hdr->WriteBack(hdr->sector_position);
-    /***************************  end  ***************************/
     int result = WriteAt(into, numBytes, seekPosition);
+    if(fileTag==7)
+        currentThread->Yield();    //线程切换
     seekPosition += result;
-    /********************  I hava changed there ***********************/
     if(fileTag==4)
         printf("Writing from %d to %d\n",seekPosition,seekPosition+result);
+    synchDisk->EndWrite(hdr->sector_position);
     /***************************  end  ***************************/
     return result;
 }

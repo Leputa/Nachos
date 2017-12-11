@@ -45,6 +45,13 @@ SynchDisk::SynchDisk(char* name)
     semaphore = new Semaphore("synch disk", 0);
     lock = new Lock("synch disk lock");
     disk = new Disk(name, DiskRequestDone, (int) this);
+    /********************  I hava changed there ***********************/
+    for (int i=0;i<NumSectors;i++){
+        mutex[i]=0;
+        numReaders[i]=0;
+        numVisitors[i]=0;
+    }
+    /***************************  end  ***************************/
 }
 
 //----------------------------------------------------------------------
@@ -108,7 +115,33 @@ SynchDisk::RequestDone()
     semaphore->V();
 }
 
+/********************  I hava changed there ***********************/
+void SynchDisk::PlusReader(int sector){
+    rLock->Acquire();
+    numReaders[sector]++;
+    if(numReaders[sector]==1)
+        mutex[sector]->P();
+    printf("reader cnt: %d\n",numReaders[sector]);
+    rLock->Release();
+}
 
+void SynchDisk::MinusReader(int sector){
+    rLock->Acquire();
+    numReaders[sector]--;
+    if(numReaders[sector]==0)
+        mutex[sector]->V();
+    printf("reader cnt: %d\n",numReaders[sector]);
+    rLock->Release();
+}
+
+void SynchDisk::BeginWrite(int sector){
+    mutex[sector]->P();
+}
+
+void SynchDisk::EndWrite(int sector){
+    mutex[sector]->V();
+}
+/***************************  end  ***************************/
 
 
 
