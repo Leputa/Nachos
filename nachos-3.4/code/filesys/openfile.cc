@@ -87,7 +87,7 @@ OpenFile::Read(char *into, int numBytes)
     hdr->set_last_visit_time();
     hdr->WriteBack(hdr->sector_position);
     int result = ReadAt(into, numBytes, seekPosition);
-    if(fileTag==6||fileTag==7)
+    if(fileTag==6||fileTag==7||fileTag==8)
         currentThread->Yield();
     seekPosition += result;
     synchDisk->MinusReader(hdr->sector_position);
@@ -104,7 +104,7 @@ OpenFile::Write(char *into, int numBytes)
     hdr->set_last_modified_time();
     hdr->WriteBack(hdr->sector_position);
     int result = WriteAt(into, numBytes, seekPosition);
-    if(fileTag==6||fileTag==7)
+    if(fileTag==6||fileTag==7||fileTag==8)
         currentThread->Yield();    //线程切换
     seekPosition += result;
     if(fileTag==4)

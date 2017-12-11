@@ -46,8 +46,9 @@ SynchDisk::SynchDisk(char* name)
     lock = new Lock("synch disk lock");
     disk = new Disk(name, DiskRequestDone, (int) this);
     /********************  I hava changed there ***********************/
+    rLock=new Lock("write/read");
     for (int i=0;i<NumSectors;i++){
-        mutex[i]=0;
+        mutex[i]=new Semaphore("sector", 1);
         numReaders[i]=0;
         numVisitors[i]=0;
     }
@@ -119,26 +120,39 @@ SynchDisk::RequestDone()
 void SynchDisk::PlusReader(int sector){
     rLock->Acquire();
     numReaders[sector]++;
-    if(numReaders[sector]==1)
+    if(numReaders[sector]==1){
+        if(fileTag==6||fileTag==7||fileTag==8)
+            printf("The first Reader is Coming!\n");
         mutex[sector]->P();
-    printf("reader cnt: %d\n",numReaders[sector]);
+    }
+    if(fileTag==6||fileTag==7||fileTag==8)
+        printf("reader cnt: %d\n",numReaders[sector]);
     rLock->Release();
 }
 
 void SynchDisk::MinusReader(int sector){
     rLock->Acquire();
     numReaders[sector]--;
-    if(numReaders[sector]==0)
+    if(numReaders[sector]==0){
         mutex[sector]->V();
-    printf("reader cnt: %d\n",numReaders[sector]);
+        if(fileTag==6||fileTag==7||fileTag==8)
+            printf("The last Reader is Leaving!\n");
+    }
+    if(fileTag==6||fileTag==7||fileTag==8)
+        printf("reader cnt: %d\n",numReaders[sector]);
     rLock->Release();
 }
 
 void SynchDisk::BeginWrite(int sector){
+    if(fileTag==6||fileTag==7||fileTag==8)
+        printf("The writer would writing.\n");
     mutex[sector]->P();
+    printf("The writer is writing.\n");
+
 }
 
 void SynchDisk::EndWrite(int sector){
+    printf("The writer is leaving.\n");
     mutex[sector]->V();
 }
 /***************************  end  ***************************/

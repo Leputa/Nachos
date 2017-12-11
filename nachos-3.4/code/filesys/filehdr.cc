@@ -272,7 +272,8 @@ bool FileHeader::Extend(BitMap *freeMap,int bytes){
         return TRUE;
     if( freeMap->NumClear()<numSectors-last_sector)
         return FALSE;
-    printf("extend %d sectors\n",numSectors-last_sector);
+    if (fileTag==4)
+        printf("extend %d sectors\n",numSectors-last_sector);
     for (int i=last_sector;i<numSectors;i++)
         dataSectors[i]=freeMap->Find();
     return TRUE;

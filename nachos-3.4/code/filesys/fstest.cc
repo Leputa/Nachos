@@ -163,7 +163,8 @@ FileRead()
     for (i = 0; i < FileSize; i += ContentSize) {
         numBytes = openFile->Read(buffer, ContentSize);
         if ((numBytes < 10) || strncmp(buffer, Contents, ContentSize)) {
-            printf("Perf test: unable to read %s\n", FileName);
+            if(fileTag==4)
+                printf("Perf test: unable to read %s\n", FileName);
             delete openFile;
             delete [] buffer;
             return;
@@ -174,14 +175,96 @@ FileRead()
 }
 
 /********************  I hava changed there ***********************/
+static void
+FileRead2()
+{
+    OpenFile *openFile;
+    char *buffer = new char[ContentSize];
+    int i, numBytes;
+
+    printf("Sequential read of %d byte file, in %d byte chunks\n",
+	FileSize, ContentSize);
+
+    if ((openFile = fileSystem->Open(FileName)) == NULL) {
+        printf("Perf test: unable to open file %s\n", FileName);
+        delete [] buffer;
+        return;
+        }
+    for (i = 0; i < FileSize/30; i += ContentSize) {
+        numBytes = openFile->Read(buffer, ContentSize);
+        if ((numBytes < 10) || strncmp(buffer, Contents, ContentSize)) {
+            if(fileTag==4)
+                printf("Perf test: unable to read %s\n", FileName);
+            delete openFile;
+            delete [] buffer;
+            return;
+        }
+    }
+    delete [] buffer;
+    delete openFile;	// close file
+}
+
+static void
+FileWrite2()
+{
+    OpenFile *openFile;
+    int i, numBytes;
+
+    printf("Sequential write of %d byte file, in %d byte chunks\n",
+	FileSize, ContentSize);
+    if (!fileSystem->Create(FileName, 0)) {
+      printf("Perf test: can't create %s\n", FileName);
+      return;
+    }
+    openFile = fileSystem->Open(FileName);
+    if (openFile == NULL) {
+        printf("Perf test: unable to open %s\n", FileName);
+        return;
+    }
+    for (i = 0; i < FileSize/30; i += ContentSize) {
+        numBytes = openFile->Write(Contents, ContentSize);
+        if (numBytes < 10) {
+            printf("Perf test: unable to write %s\n", FileName);
+            delete openFile;
+            return;
+        }
+    }
+    delete openFile;	// close file
+}
+
+static void
+FileWrite3()
+{
+    OpenFile *openFile;
+    int i, numBytes;
+
+    printf("Sequential write of %d byte file, in %d byte chunks\n",
+	FileSize, ContentSize);
+
+    openFile = fileSystem->Open(FileName);
+    if (openFile == NULL) {
+        printf("Perf test: unable to open %s\n", FileName);
+        return;
+    }
+    for (i = 0; i < FileSize/30; i += ContentSize) {
+        numBytes = openFile->Write(Contents, ContentSize);
+        if (numBytes < 10) {
+            printf("Perf test: unable to write %s\n", FileName);
+            delete openFile;
+            return;
+        }
+    }
+    delete openFile;	// close file
+}
+
 void read(){
     printf("%s begin reading file.\n",currentThread->getName());
-    FileRead();
+    FileRead2();
 }
 
 void write(){
     printf("%s begin writing file.\n",currentThread->getName());
-    FileWrite();
+    FileWrite3();
 }
 
 /***************************  end  ***************************/
@@ -191,7 +274,10 @@ PerformanceTest()
 {
     printf("Starting file system performance test:\n");
     stats->Print();
-    FileWrite();
+    if(fileTag==4)
+        FileWrite();
+    else
+        FileWrite2();
     /********************  I hava changed there ***********************/
     if(fileTag==6){
         Thread*thread1=new Thread("Reader1");
@@ -203,10 +289,11 @@ PerformanceTest()
         Thread*thread1=new Thread("Reader1");
         Thread*thread2=new Thread("writer1");
         thread1->Fork(read,1);
-        thread2->Fork(write,2);
+        thread2->Fork(write,1);
     }
     /***************************  end  ***************************/
-    FileRead();
+    if(fileTag==4)
+        FileRead();
     if (!fileSystem->Remove(FileName)) {
       printf("Perf test: unable to remove %s\n", FileName);
       return;
