@@ -89,6 +89,9 @@ FileSystem::FileSystem(bool format)
     printf("if you'd like to test lab5 Exercise3 'Extending file's length',please input '3'\n");
     printf("if you'd like to test lab5 Exercise5 'Dynamically adjusting file's length',please input '4'\n");
     printf("if you'd like to test lab5 Exercise6 'synchConsole',please input '5'\n");
+    printf("if you'd like to test lab5 Exercise7 'file mutex access A',please input '6'\n");
+    printf("if you'd like to test lab5 Exercise7 'file mutex access B',please input '7'\n");
+    printf("if you'd like to test lab5 Exercise7 'file mutex access C',please input '8'\n");
     scanf("%d",&fileTag);
     /***************************  end  ***************************/
 

@@ -179,6 +179,12 @@ void read(){
     FileRead();
 }
 
+void write(){
+    printf("%s begin writing file.\n",currentThread->getName());
+    FileWrite();
+}
+
+/***************************  end  ***************************/
 
 void
 PerformanceTest()
@@ -193,6 +199,13 @@ PerformanceTest()
         thread1->Fork(read,1);
         thread2->Fork(read,2);
     }
+    if(fileTag==7){
+        Thread*thread1=new Thread("Reader1");
+        Thread*thread2=new Thread("writer1");
+        thread1->Fork(read,1);
+        thread2->Fork(write,2);
+    }
+    /***************************  end  ***************************/
     FileRead();
     if (!fileSystem->Remove(FileName)) {
       printf("Perf test: unable to remove %s\n", FileName);
