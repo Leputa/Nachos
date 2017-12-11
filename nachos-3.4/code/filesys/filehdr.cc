@@ -55,14 +55,14 @@ FileHeader::Allocate(BitMap *freeMap, int fileSize)
         for (int i = 0; i < NumDirect-1; i++)
             dataSectors[i] = freeMap->Find();
         dataSectors[NumDirect-1]=freeMap->Find();
-        printf("%d\n",dataSectors[NumDirect-1]);
+        //printf("%d\n",dataSectors[NumDirect-1]);
         int indirect_index[32];
         for (int i = 0; i < numSectors-NumDirect+1;i++){
             indirect_index[i]=freeMap->Find();
         }
         //间接索索写回磁盘
         synchDisk->WriteSector(dataSectors[NumDirect-1],(char *)indirect_index);
-        printf("%d\n",dataSectors[NumDirect-1]);
+        //printf("%d\n",dataSectors[NumDirect-1]);
     }
     /***************************  end  ***************************/
     return TRUE;

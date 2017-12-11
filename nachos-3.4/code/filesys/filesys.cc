@@ -433,6 +433,11 @@ FileSystem::Remove(char *name)
     fileHdr = new FileHeader;
     fileHdr->FetchFrom(sector);
 
+    if(synchDisk->numVisitors[fileHdr->sector_position]!=0){
+        printf("Unable to delete th file due to the fact that there are still vistors.\n");
+        return FALSE;
+    }
+
     freeMap = new BitMap(NumSectors);
     freeMap->FetchFrom(freeMapFile);
 
