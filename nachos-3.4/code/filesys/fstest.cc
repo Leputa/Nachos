@@ -291,6 +291,13 @@ PerformanceTest()
         thread1->Fork(read,1);
         thread2->Fork(write,1);
     }
+    if(fileTag==8){
+        Thread*thread1=new Thread("Reader1");
+        Thread*thread2=new Thread("Reader2");
+        thread1->Fork(read,1);
+        thread2->Fork(read,2);
+        fileSystem->Remove(FileName);
+    }
     /***************************  end  ***************************/
     if(fileTag==4)
         FileRead();
