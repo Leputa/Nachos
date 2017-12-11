@@ -147,12 +147,14 @@ void SynchDisk::BeginWrite(int sector){
     if(fileTag==6||fileTag==7||fileTag==8)
         printf("The writer would writing.\n");
     mutex[sector]->P();
-    printf("The writer is writing.\n");
+    if(fileTag==6||fileTag==7||fileTag==8)
+        printf("The writer is writing.\n");
 
 }
 
 void SynchDisk::EndWrite(int sector){
-    printf("The writer is leaving.\n");
+    if(fileTag==6||fileTag==7||fileTag==8)
+        printf("The writer is leaving.\n");
     mutex[sector]->V();
 }
 /***************************  end  ***************************/
