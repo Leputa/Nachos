@@ -54,6 +54,7 @@ class BitMap {
     void WriteBack(OpenFile *file); 	// write contents to disk
     /*******************  I hava change here **********************/
     float BitMapTieUpRate();
+    int FindCS(int cnt);
     /***************************  end  ***************************/
 
   private:

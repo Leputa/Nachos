@@ -105,6 +105,22 @@ BitMap::Find()
     return -1;
 }
 
+/*******************  I hava change here **********************/
+int BitMap::FindCS(int cnt){
+    for (int i=0;i<numBits;i++){
+        int tag=1;
+        for (int j=0;j<cnt;j++)  //找连续磁盘块
+            if(Test(i+j))        //未找到，查找一下个起始位置
+                tag=0;
+            if(tag==1){
+                for(int j=0;j<cnt;j++)
+                    Mark(i+j);
+                return i;
+            }
+    }
+    return i;
+}
+/***************************  end  ***************************/
 //----------------------------------------------------------------------
 // BitMap::NumClear
 // 	Return the number of clear bits in the bitmap.

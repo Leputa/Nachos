@@ -48,10 +48,15 @@ FileHeader::Allocate(BitMap *freeMap, int fileSize)
 
     /********************  I hava changed there ***********************/
     if(numSectors<NumDirect){
-        for (int i = 0; i < numSectors; i++)
-            dataSectors[i] = freeMap->Find();
+        /*int free_space=freeMap->FindCS(numSectors);
+        if(free_space!=-1)
+            for (int i=0;i<numSectors;i++)
+                dataSectors[i]=free_space+i;
+        else*/
+            for (int i = 0; i < numSectors; i++)
+                dataSectors[i] = freeMap->Find();
     }
-    else {
+    else {     //当文件较大时（使用了多级索引）,找到连续的存储空间比较困难（nachos也没有提供磁盘shuffle的方法），故不采用以上方法实现
         for (int i = 0; i < NumDirect-1; i++)
             dataSectors[i] = freeMap->Find();
         dataSectors[NumDirect-1]=freeMap->Find();
@@ -64,6 +69,8 @@ FileHeader::Allocate(BitMap *freeMap, int fileSize)
         synchDisk->WriteSector(dataSectors[NumDirect-1],(char *)indirect_index);
         //printf("%d\n",dataSectors[NumDirect-1]);
     }
+    if(fileTag==9)
+        freeMap->Print();
     /***************************  end  ***************************/
     return TRUE;
 }

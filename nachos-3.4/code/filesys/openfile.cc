@@ -32,7 +32,7 @@ OpenFile::OpenFile(int sector)
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
     /********************  I hava changed there ***********************/
-    if(fileTag==1||fileTag==3)
+    if(fileTag==1||fileTag==3||fileTag==9)
         hdr->Print();
     synchDisk->numVisitors[hdr->sector_position]++;
     /***************************  end  ***************************/

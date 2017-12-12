@@ -93,6 +93,7 @@ FileSystem::FileSystem(bool format)
     printf("if you'd like to test lab5 Exercise7 'file mutex access A',please input '6'\n");
     printf("if you'd like to test lab5 Exercise7 'file mutex access B',please input '7'\n");
     printf("if you'd like to test lab5 Exercise7 'file mutex access C',please input '8'\n");
+    printf("if you'd like to test lab5 Chanllenge2 'Storage Optimization A',please input '9'\n");
     scanf("%d",&fileTag);
     /***************************  end  ***************************/
 
@@ -301,6 +302,8 @@ FileSystem::Create(char *name, int initialSize)
                     else if(fileTag==2){
                         directory->Print();
                     }
+                    else if(fileTag==9)
+                        hdr->Print();
                     /***************************  end  ***************************/
                 // everthing worked, flush all changes back to disk
                     directory->WriteBack(name_dir);
@@ -433,12 +436,12 @@ FileSystem::Remove(char *name)
     /***************************  end  ***************************/
     fileHdr = new FileHeader;
     fileHdr->FetchFrom(sector);
-
+    /********************  I hava changed there ***********************/
     if(synchDisk->numVisitors[fileHdr->sector_position]!=0){
         printf("Unable to delete th file due to the fact that there are still vistors.\n");
         return FALSE;
     }
-
+    /***************************  end  ***************************/
     freeMap = new BitMap(NumSectors);
     freeMap->FetchFrom(freeMapFile);
 
