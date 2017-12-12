@@ -48,11 +48,11 @@ FileHeader::Allocate(BitMap *freeMap, int fileSize)
 
     /********************  I hava changed there ***********************/
     if(numSectors<NumDirect){
-        /*int free_space=freeMap->FindCS(numSectors);
+        int free_space=freeMap->FindCS(numSectors);
         if(free_space!=-1)
             for (int i=0;i<numSectors;i++)
                 dataSectors[i]=free_space+i;
-        else*/
+        else
             for (int i = 0; i < numSectors; i++)
                 dataSectors[i] = freeMap->Find();
     }

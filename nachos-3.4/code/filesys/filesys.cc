@@ -293,16 +293,10 @@ FileSystem::Create(char *name, int initialSize)
                     hdr->set_last_visit_time();
                     hdr->set_last_modified_time();
                     hdr->sector_position=sector;
-                    if(fileTag==1){
-                        printf("Create:\n");
-                        printf("create-time: %s\n",hdr->create_time);
-                        printf("visit-time: %s\n",hdr->last_visit_time);
-                        printf("modify-time: %s\n",hdr->last_modified_time);
-                    }
-                    else if(fileTag==2){
+                    if(fileTag==2){
                         directory->Print();
                     }
-                    else if(fileTag==9)
+                    else if(fileTag==9||fileTag==1)
                         hdr->Print();
                     /***************************  end  ***************************/
                 // everthing worked, flush all changes back to disk
