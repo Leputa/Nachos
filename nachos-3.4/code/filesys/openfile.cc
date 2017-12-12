@@ -90,6 +90,8 @@ OpenFile::Read(char *into, int numBytes)
     if(fileTag==6||fileTag==7||fileTag==8)
         currentThread->Yield();
     seekPosition += result;
+    if(fileTag==10)
+        printf("Reading from %d to %d\n",seekPosition,seekPosition+result);
     synchDisk->MinusReader(hdr->sector_position);
     /***************************  end  ***************************/
     return result;

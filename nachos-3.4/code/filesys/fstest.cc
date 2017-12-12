@@ -114,7 +114,7 @@ Print(char *name)
 #define Contents 	"1234567890"
 #define ContentSize 	strlen(Contents)
 /********************  I hava changed there ***********************/
-#define FileSize 	((int)(ContentSize * 30))   //5000会因为控制台大量输出把linux的堆爆了，只能改小点啦
+#define FileSize 	((int)(ContentSize * 10))   //5000会因为控制台大量输出把linux的堆爆了，只能改小点啦
 /******************************  end  *****************************/
 
 static void
@@ -274,7 +274,7 @@ PerformanceTest()
 {
     printf("Starting file system performance test:\n");
     stats->Print();
-    if(fileTag==4)
+    if(fileTag==4||fileTag==10)
         FileWrite();
     else
         FileWrite2();
@@ -299,7 +299,7 @@ PerformanceTest()
         fileSystem->Remove(FileName);
     }
     /***************************  end  ***************************/
-    if(fileTag==4)
+    if(fileTag==4||fileTag==10)
         FileRead();
     if (!fileSystem->Remove(FileName)) {
       printf("Perf test: unable to remove %s\n", FileName);

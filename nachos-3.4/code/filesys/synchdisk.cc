@@ -16,6 +16,7 @@
 
 #include "copyright.h"
 #include "synchdisk.h"
+#include "system.h"
 
 //----------------------------------------------------------------------
 // DiskRequestDone
@@ -52,6 +53,8 @@ SynchDisk::SynchDisk(char* name)
         numReaders[i]=0;
         numVisitors[i]=0;
     }
+    for(int i=0;i<4;i++)
+        cache[i]=new Cache();
     /***************************  end  ***************************/
 }
 
@@ -81,7 +84,54 @@ void
 SynchDisk::ReadSector(int sectorNumber, char* data)
 {
     lock->Acquire();			// only one disk I/O at a time
-    disk->ReadRequest(sectorNumber, data);
+     /********************  I hava changed there ***********************/
+    int pos=-1;
+    int i;
+    for (int i=0;i<4;i++){
+        if(cache[i]->valid==1&&cache[i]->sector==sectorNumber){
+            pos=i;
+            break;
+        }
+    }
+    if(pos==-1)//未命中
+    {
+        if(fileTag==10)
+            printf("Cache unhit!.\n");
+        disk->ReadRequest(sectorNumber, data);
+        int swap=-1;
+        for (i=0;i<4;i++){
+            if(cache[i]->valid==0){
+                swap=i;
+                break;
+            }
+        }
+        if(swap==-1){
+            int min=cache[0]->last_visit_time;
+            int min_pos=0;
+            //LRU算法换出cache
+            for(int i=0;i<4;i++)
+                if(cache[i]->last_visit_time<min){
+                    min=cache[i]->last_visit_time;
+                    min_pos=i;
+                }
+            swap=min_pos;
+        }
+        //如果dirty==1,需要写回磁盘，这里未实现,依旧用WriteSector()写回磁盘.
+        cache[swap]->valid=1;
+        cache[swap]->dirty=0;
+        cache[swap]->sector=sectorNumber;
+        cache[swap]->last_visit_time=stats->totalTicks;
+        bcopy(data,cache[swap]->data,SectorSize);
+    }
+    else{
+        if(fileTag==10)
+            printf("Cache hit!.\n");
+        cache[pos]->last_visit_time=stats->totalTicks;
+        //读cache
+        bcopy(cache[pos]->data,data,SectorSize);
+        disk->HandleInterrupt();
+    }
+    /***************************  end  ***************************/
     semaphore->P();			// wait for interrupt
     lock->Release();
 }
@@ -99,6 +149,14 @@ void
 SynchDisk::WriteSector(int sectorNumber, char* data)
 {
     lock->Acquire();			// only one disk I/O at a time
+    /********************  I hava changed there ***********************/
+    //写之后磁盘块内容和扇区内容不一致
+    for(int i=0;i<4;i++){
+        if(cache[i]->sector==sectorNumber){
+            cache[i]->valid=0;
+        }
+    }
+    /***************************  end  ***************************/
     disk->WriteRequest(sectorNumber, data);
     semaphore->P();			// wait for interrupt
     lock->Release();

@@ -94,6 +94,7 @@ FileSystem::FileSystem(bool format)
     printf("if you'd like to test lab5 Exercise7 'file mutex access B',please input '7'\n");
     printf("if you'd like to test lab5 Exercise7 'file mutex access C',please input '8'\n");
     printf("if you'd like to test lab5 Chanllenge2 'Storage Optimization A',please input '9'\n");
+    printf("if you'd like to test lab5 Chanllenge2 'Storage Optimization B',please input '10'\n");
     scanf("%d",&fileTag);
     /***************************  end  ***************************/
 

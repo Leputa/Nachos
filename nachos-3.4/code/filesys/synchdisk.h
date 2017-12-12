@@ -24,6 +24,20 @@
 // This class provides the abstraction that for any individual thread
 // making a request, it waits around until the operation finishes before
 // returning.
+
+/********************  I hava changed there ***********************/
+
+class Cache {
+    public:
+        int valid;  //有效位
+        int dirty;  //脏位
+        int sector;
+        int last_visit_time;
+        char data[SectorSize];
+};
+/***************************  end  ***************************/
+
+
 class SynchDisk {
   public:
     SynchDisk(char* name);    		// Initialize a synchronous disk,
@@ -54,6 +68,7 @@ class SynchDisk {
     Semaphore *mutex[NumSectors];   //文件访问信号量
     int numReaders[NumSectors];     //各个文件的读者数量
     Lock *rLock;                    //保证和读者数量相关操作互斥
+    Cache *cache[4];
     /***************************  end  ***************************/
     Disk *disk;		  		// Raw disk device
     Semaphore *semaphore; 		// To synchronize requesting thread
