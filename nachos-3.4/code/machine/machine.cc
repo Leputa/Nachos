@@ -297,6 +297,12 @@ void Machine::Suspend_prepare()
         }
     }
 }
+
+void Machine::PC_advance(){
+    WriteRegister(PrevPCReg,registers[PCReg]);
+    WriteRegister(PCReg,registers[PCReg]+sizeof(int));
+    WriteRegister(NextPCReg,registers[NextPCReg]+sizeof(int));
+}
 /***************************  end  ***************************/
 
 

@@ -130,6 +130,78 @@ ExceptionHandler(ExceptionType which)
         machine->WriteRegister(PCReg, NextPC);
     }
     /***************************  end  ***************************/
+
+    /*******************  I hava change here **********************/
+    else if((which==SyscallException)&&(type==SC_Create)){
+        printf("Syscall:Create\n");
+        int address=machine->ReadRegister(4);
+        char name[12];
+        int pos=0;
+        int data;
+        while(1){
+            machine->ReadMem(address+pos,1,&data);
+            if(data==0){
+                name[pos]='\0';
+                break;
+            }
+            name[pos++]=char(data);
+        }
+        fileSystem->Create(name,128);
+        machine->PC_advance();
+    }
+    else if((which==SyscallException)&&(type==SC_Open)){
+        printf("Syscall:Open\n");
+        int address=machine->ReadRegister(4);
+        char name[12];
+        int pos=0;
+        int data;
+        while(1){
+            machine->ReadMem(address+pos,1,&data);
+            if(data==0){
+                name[pos]='\0';
+                break;
+            }
+            name[pos++]=char(data);
+        }
+        OpenFile *openfile=fileSystem->Open(name);
+        machine->WriteRegister(2,int(openfile));
+        machine->PC_advance();
+    }
+    else if((which==SyscallException)&&(type==SC_Close)){
+        printf("Syscall:Close\n");
+        int fd=machine->ReadRegister(4);
+        OpenFile *openfile=(OpenFile*)fd;
+        delete openfile;
+        machine->PC_advance();
+    }
+    else if((which==SyscallException)&&(type==SC_Read)){
+        printf("Syscall:Read\n");
+        int position=machine->ReadRegister(4);
+        int count=machine->ReadRegister(5);
+        int fd=machine->ReadRegister(6);
+        OpenFile *openfile=(OpenFile*)fd;
+        char content[count];
+        int result=openfile->Read(content,count);
+        for(int i=0;i<result;i++)
+            machine->WriteMem(position+i,1,int(content[i]));
+        machine->WriteRegister(2,result);
+    }
+    else if((which==SyscallException)&&(type==SC_Write)){
+        printf("Syscall:Write\n");
+        int position=machine->ReadRegister(4);
+        int count=machine->ReadRegister(5);
+        int fd=machine->ReadRegister(6);
+        OpenFile *openfile=(OpenFile*)fd;
+        char content[count];
+        int data;
+        for (int i=0;i<count;i++){
+            machine->ReadMem(position+i,1,&data);
+            content[i]=char(data);
+        }
+        openfile->Write(content,count);
+        machine->PC_advance();
+    }
+    /***************************  end  ***************************/
     else {
         printf("Unexpected user mode exception %d %d\n", which, type);
         ASSERT(FALSE);
