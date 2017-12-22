@@ -26,7 +26,6 @@
 // returning.
 
 /********************  I hava changed there ***********************/
-
 class Cache {
     public:
         int valid;  //有效位
