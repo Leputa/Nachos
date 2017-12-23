@@ -61,6 +61,9 @@ class FileSystem {
 	  int fileDescriptor = OpenForReadWrite(name, FALSE);
 
 	  if (fileDescriptor == -1) return NULL;
+      /*******************  I hava change here **********************/
+      //currentThread->fileName=name;
+      /***************************  end  ***************************/
 	  return new OpenFile(fileDescriptor);
       }
 

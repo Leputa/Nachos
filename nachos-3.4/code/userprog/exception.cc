@@ -25,6 +25,50 @@
 #include "system.h"
 #include "syscall.h"
 
+/*******************  I hava change here **********************/
+class Info{
+    public:
+        Info(){
+            space=NULL;
+        }
+        AddrSpace *space;
+        int pc;
+};
+
+void exec_func(int address){
+    char name[24];
+    int pos=0;
+    int data;
+    while(1){
+        machine->ReadMem(address+pos,1,&data);
+        if(data==0){
+            name[pos]='\0';
+            break;
+        }
+        name[pos++]=char(data);
+    }
+    OpenFile *openFile=fileSystem->Open(name);
+    AddrSpace *space=new AddrSpace(openFile);
+    currentThread->space=space;
+    delete openFile;
+    space->InitRegisters();
+    space->RestoreState();
+    machine->Run();
+}
+
+void fork_func(int address){
+    Info *info=(Info*)address;
+    AddrSpace *space=info->space;
+    currentThread->space=space;
+    int pc=info->pc;
+    space->InitRegisters();
+    space->RestoreState();
+    machine->WriteRegister(PCReg,pc);
+    machine->WriteRegister(NextPCReg,pc+4);
+    machine->Run();
+}
+
+/***************************  end  ***************************/
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -133,7 +177,8 @@ ExceptionHandler(ExceptionType which)
 
     /*******************  I hava change here **********************/
     else if((which==SyscallException)&&(type==SC_Create)){
-        printf("Syscall:Create\n");
+        if(testTag==6)
+            printf("Syscall:Create\n");
         int address=machine->ReadRegister(4);
         char name[28];
         int pos=0;
@@ -150,7 +195,8 @@ ExceptionHandler(ExceptionType which)
         machine->PC_advance();
     }
     else if((which==SyscallException)&&(type==SC_Open)){
-        printf("Syscall:Open\n");
+        if(testTag==6)
+            printf("Syscall:Open\n");
         int address=machine->ReadRegister(4);
         char name[28];
         int pos=0;
@@ -168,14 +214,16 @@ ExceptionHandler(ExceptionType which)
         machine->PC_advance();
     }
     else if((which==SyscallException)&&(type==SC_Close)){
-        printf("Syscall:Close\n");
+        if(testTag==6)
+            printf("Syscall:Close\n");
         int fd=machine->ReadRegister(4);
         OpenFile *openfile=(OpenFile*)fd;
         delete openfile;
         machine->PC_advance();
     }
     else if((which==SyscallException)&&(type==SC_Read)){
-        printf("Syscall:Read\n");
+        if(testTag==6)
+            printf("Syscall:Read\n");
         int position=machine->ReadRegister(4);
         int cnt=machine->ReadRegister(5);
         int fd=machine->ReadRegister(6);
@@ -188,7 +236,8 @@ ExceptionHandler(ExceptionType which)
         machine->PC_advance();
     }
     else if((which==SyscallException)&&(type==SC_Write)){
-        printf("Syscall:Write\n");
+        if(testTag==6)
+            printf("Syscall:Write\n");
         int position=machine->ReadRegister(4);
         int cnt=machine->ReadRegister(5);
         int fd=machine->ReadRegister(6);
@@ -201,6 +250,45 @@ ExceptionHandler(ExceptionType which)
         }
         openfile->Write(content,cnt);
         machine->PC_advance();
+    }
+    else if ((which==SyscallException)&&(type==SC_Exec)){
+        if(testTag==7)
+            printf("Syscall:Exec\n");
+        int address=machine->ReadRegister(4);
+        Thread *thread2=new Thread("second Thread");
+        thread2->Fork(exec_func,address);
+        machine->WriteRegister(2,thread2->getThread_id());
+        machine->PC_advance();
+    }
+    else if ((which==SyscallException)&&(type==SC_Fork)){
+        if(testTag==7)
+            printf("Syscall:Fork\n");
+        int pc=machine->ReadRegister(4);
+        Thread *thread2=new Thread("second Thread");
+        OpenFile *openFile=fileSystem->Open(currentThread->fileName);
+        AddrSpace *space=new AddrSpace(openFile);
+        space=currentThread->space;
+        Info*info=new Info;
+        info->pc=pc;
+        info->space=space;
+        thread2->Fork(fork_func,int(info));
+        machine->PC_advance();
+    }
+    else if((which==SyscallException)&&(type==SC_Join)){
+        if(testTag==7)
+            printf("Syscall:Join\n");
+        int thread_ID=machine->ReadRegister(4);
+        while(thread_id_flag[thread_ID])
+            currentThread->Yield();
+        machine->PC_advance();
+    }
+    else if((which==SyscallException)&&(type==SC_Exit)){
+        if(testTag==7)
+            printf("Syscall:Exit\n");
+        int status=machine->ReadRegister(4);
+        printf("programme exit with status %d\n",status);
+        machine->PC_advance();
+        currentThread->Finish();
     }
     /***************************  end  ***************************/
     else {

@@ -303,6 +303,14 @@ void Machine::PC_advance(){
     WriteRegister(PCReg,registers[PCReg]+sizeof(int));
     WriteRegister(NextPCReg,registers[NextPCReg]+sizeof(int));
 }
+
+void Machine::clear(){
+    for (int i = 0; i < TLBSize; i++){
+        tlb[i].valid = FALSE;
+        tlb[i].createTime=stats->totalTicks;
+        tlb[i].lastUseTime=stats->totalTicks;
+    }
+}
 /***************************  end  ***************************/
 
 

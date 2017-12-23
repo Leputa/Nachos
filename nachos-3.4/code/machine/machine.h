@@ -192,7 +192,8 @@ class Machine {
 
     int tag=0;
     void Suspend_prepare();
-    void Machine::PC_advance();
+    void PC_advance();
+    void clear();
     /***************************  end  ***************************/
 
   private:

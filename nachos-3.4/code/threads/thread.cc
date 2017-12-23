@@ -45,6 +45,9 @@ Thread::Thread(char* threadName,int p)   //优先级设置为1到32
     status = JUST_CREATED;
 #ifdef USER_PROGRAM
     space = NULL;
+    /*******************  I hava change here **********************/
+    fileName=NULL;
+    /***************************  end  ***************************/
 #endif
 	user_id=this->getUser_id();
 
@@ -64,6 +67,7 @@ Thread::Thread(char* threadName)   //优先级设置为1到32
     status = JUST_CREATED;
 #ifdef USER_PROGRAM
     space = NULL;
+    fileName=NULL;
 #endif
 
 	user_id=this->getUser_id();

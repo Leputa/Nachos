@@ -121,6 +121,7 @@ StartProcess(char *filename)
     if(testTag==5){
         StartSuspendThreadProcess(filename);
     }
+    currentThread->fileName=filename;
     /***************************  end  ***************************/
     OpenFile *executable = fileSystem->Open(filename); //打开相应文件
     AddrSpace *space;

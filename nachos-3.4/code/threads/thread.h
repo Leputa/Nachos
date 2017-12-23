@@ -131,6 +131,9 @@ class Thread {
     void RestoreUserState();		// restore user-level register state
 
     AddrSpace *space;			// User code this thread is running.
+    /*******************  I hava change here **********************/
+    char *fileName;
+    /***************************  end  ***************************/
 #endif
 
 /********************  Here is my codes ***********************/
