@@ -135,7 +135,7 @@ ExceptionHandler(ExceptionType which)
     else if((which==SyscallException)&&(type==SC_Create)){
         printf("Syscall:Create\n");
         int address=machine->ReadRegister(4);
-        char name[12];
+        char name[28];
         int pos=0;
         int data;
         while(1){
@@ -146,13 +146,13 @@ ExceptionHandler(ExceptionType which)
             }
             name[pos++]=char(data);
         }
-        fileSystem->Create(name,128);
+        fileSystem->Create(name,28);
         machine->PC_advance();
     }
     else if((which==SyscallException)&&(type==SC_Open)){
         printf("Syscall:Open\n");
         int address=machine->ReadRegister(4);
-        char name[12];
+        char name[28];
         int pos=0;
         int data;
         while(1){
@@ -164,7 +164,7 @@ ExceptionHandler(ExceptionType which)
             name[pos++]=char(data);
         }
         OpenFile *openfile=fileSystem->Open(name);
-        machine->WriteRegister(2,int(openfile));
+        machine->WriteRegister(2,(int)openfile);
         machine->PC_advance();
     }
     else if((which==SyscallException)&&(type==SC_Close)){
@@ -177,28 +177,29 @@ ExceptionHandler(ExceptionType which)
     else if((which==SyscallException)&&(type==SC_Read)){
         printf("Syscall:Read\n");
         int position=machine->ReadRegister(4);
-        int count=machine->ReadRegister(5);
+        int cnt=machine->ReadRegister(5);
         int fd=machine->ReadRegister(6);
         OpenFile *openfile=(OpenFile*)fd;
-        char content[count];
-        int result=openfile->Read(content,count);
+        char content[cnt];
+        int result=openfile->Read(content,cnt);
         for(int i=0;i<result;i++)
-            machine->WriteMem(position+i,1,int(content[i]));
+            machine->WriteMem(position+i,1,(int)content[i]);
         machine->WriteRegister(2,result);
+        machine->PC_advance();
     }
     else if((which==SyscallException)&&(type==SC_Write)){
         printf("Syscall:Write\n");
         int position=machine->ReadRegister(4);
-        int count=machine->ReadRegister(5);
+        int cnt=machine->ReadRegister(5);
         int fd=machine->ReadRegister(6);
         OpenFile *openfile=(OpenFile*)fd;
-        char content[count];
+        char content[cnt];
         int data;
-        for (int i=0;i<count;i++){
+        for (int i=0;i<cnt;i++){
             machine->ReadMem(position+i,1,&data);
             content[i]=char(data);
         }
-        openfile->Write(content,count);
+        openfile->Write(content,cnt);
         machine->PC_advance();
     }
     /***************************  end  ***************************/

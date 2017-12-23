@@ -1,12 +1,12 @@
 /*
  Copyright (c) 1992 The Regents of the University of California.
- All rights reserved.  See copyright.h for copyright notice and limitation 
+ All rights reserved.  See copyright.h for copyright notice and limitation
  of liability and disclaimer of warranty provisions.
  */
 
 /* This program reads in a COFF format file, and outputs a flat file --
  * the flat file can then be copied directly to virtual memory and executed.
- * In other words, the various pieces of the object code are loaded at 
+ * In other words, the various pieces of the object code are loaded at
  * the appropriate offset in the flat file.
  *
  * Assumes coff file compiled with -N -T 0 to make sure it's not shared text.
@@ -64,7 +64,7 @@ main (int argc, char **argv)
 	fprintf(stderr, "Usage: %s <coffFileName> <flatFileName>\n", argv[0]);
 	exit(1);
     }
-    
+
 /* open the object file (input) */
     fdIn = open(argv[1], O_RDONLY, 0);
     if (fdIn == -1) {
@@ -78,21 +78,21 @@ main (int argc, char **argv)
 	perror(argv[2]);
 	exit(1);
     }
-    
+
 /* Read in the file header and check the magic number. */
     ReadStruct(fdIn,fileh);
     if (fileh.f_magic != MIPSELMAGIC) {
 	fprintf(stderr, "File is not a MIPSEL COFF file\n");
 	exit(1);
     }
-    
+
 /* Read in the system header and check the magic number */
     ReadStruct(fdIn,systemh);
     if (systemh.magic != OMAGIC) {
 	fprintf(stderr, "File is not a OMAGIC file\n");
 	exit(1);
     }
-    
+
 /* Read in the section headers. */
     numsections = fileh.f_nscns;
     sections = (struct scnhdr *)malloc(fileh.f_nscns * sizeof(struct scnhdr));

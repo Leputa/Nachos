@@ -35,7 +35,7 @@ CPP = gcc -E
 INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
-all: halt shell matmult sort testTLBException testBitMap testMulThreads
+all: halt shell matmult sort testTLBException testBitMap testMulThreads testSyscall
 
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.c > strt.s
@@ -83,3 +83,9 @@ testMulThreads.o: testMulThreads.c
 testMulThreads: testMulThreads.o start.o
 	$(LD) $(LDFLAGS) start.o testMulThreads.o -o testMulThreads.coff
 	../bin/coff2noff testMulThreads.coff testMulThreads
+
+testSyscall.o: testSyscall.c
+	$(CC) $(CFLAGS) -c testSyscall.c
+testSyscall: testSyscall.o start.o
+	$(LD) $(LDFLAGS) start.o testSyscall.o -o testSyscall.coff
+	../bin/coff2noff testSyscall.coff testSyscall
