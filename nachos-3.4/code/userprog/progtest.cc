@@ -109,6 +109,7 @@ StartProcess(char *filename)
     printf("if you'd like to test lab4 Exercise6 'PTE PageFault',please input '4':\n");
     printf("if you'd like to test lab4 Challenge1 'Suspend',please input '5':\n");
     printf("if you'd like to test lab6 Exercise3 'SysCall--FileSys',please input '6':\n");
+    printf("if you'd like to test lab6 Exercise3 'SysCall--Threads',please input '7':\n");
     scanf("%d",&testTag);
 
     if(testTag==3){

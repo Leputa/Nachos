@@ -282,11 +282,18 @@ ExceptionHandler(ExceptionType which)
             currentThread->Yield();
         machine->PC_advance();
     }
+    else if((which==SyscallException)&&(type==SC_Yield)){
+        if(testTag==7)
+            printf("Syscall:Yield\n");
+        machine->PC_advance();
+        currentThread->Yield();
+    }
     else if((which==SyscallException)&&(type==SC_Exit)){
         if(testTag==7)
             printf("Syscall:Exit\n");
         int status=machine->ReadRegister(4);
         printf("programme exit with status %d\n",status);
+        machine->clear();
         machine->PC_advance();
         currentThread->Finish();
     }
